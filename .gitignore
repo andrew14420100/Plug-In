@@ -28,6 +28,7 @@ wp-config.php
 /private/
 /secrets/
 vendor/
+/vendor
 node_modules/
 dist/
 coverage/
@@ -39,3 +40,8 @@ Thumbs.db
 .vscode/
 *.zip
 !tests/fixtures/*.json
+
+# Build e test
+/build/
+test-results/
+playwright-report/

@@ -2,7 +2,7 @@
 
 | Campo | Valore |
 | --- | --- |
-| Stato | **Proposto** (Fase 0) — in attesa di approvazione dell'utente |
+| Stato | **Approvato** dall'utente al termine della Fase 0 (requisiti minimi PHP/WP provvisori fino alla verifica TopHost); emendamenti di Fase 1 in §15 |
 | Data | 15/10/2026 |
 | Ambito | Core WordPress, mappa moduli, modello dati preliminare, permessi, migrazioni, aggiornamenti, sincronizzatore futuro |
 | Documenti vincolanti | `CLAUDE.md`, `docs/SPECIFICA.md`, `docs/DECISIONI.md`, `docs/ARCHITETTURA.md`, `docs/CLUB_MANAGER.md`, `docs/ROADMAP.md`, `docs/TEST.md` |
@@ -504,3 +504,20 @@ Fase 1 = core + dashboard (ROADMAP). Accettata solo se **tutti** i punti sono di
 - Il progetto parte con un core piccolo e testabile; ogni modulo successivo si aggancia a contratti stabili (manifest, permessi, migrazioni, audit).
 - Le scelte D2 (minimi), D11 (coda) e la cifratura (§5.6) sono esplicitamente rivedibili dopo i rilievi su TopHost/LocalWP.
 - Le parti dipendenti da Club Manager restano bloccate dalle verifiche P0 e non compaiono come funzioni attive.
+
+---
+
+## 15. Emendamenti emersi nell'implementazione della Fase 1
+
+| # | Emendamento | Motivo |
+| --- | --- | --- |
+| E1 | Lo stato dei moduli è salvato nell'option autoload `bracelli_club_modules` invece che nella tabella `bc_module_state` (§5.5) | Nessuna query aggiuntiva per richiesta: misurato 0 query del plugin sul frontend. Il dato è piccolo (un record per modulo) |
+| E2 | Aggiornamenti da GitHub (D12, §9) **rinviati** a una fase successiva | Decisione dell'utente all'avvio della Fase 1. L'header `Update URI` non è stato aggiunto per non dichiarare un canale inesistente |
+| E3 | Licenza ancora non definita | Decisione dell'utente. Plugin Check la segnala; nessun impatto funzionale |
+| E4 | Codice compatibile con PHP **8.1+** (verificato con PHPCompatibility), minimo dichiarato **8.2** provvisorio | Se TopHost usa PHP 8.1 basta cambiare la costante, senza riscrivere codice |
+| E5 | Coda (D11) non introdotta in Fase 1 | Nessun modulo della fase la richiede; resta prevista per l'import della Fase 2 |
+| E6 | `Settings` e `ModuleManager` non hanno cache propria in memoria: leggono le option (già in cache in WordPress) | Evita incoerenze dopo scritture da altre parti (riscontrate nei test) |
+| E7 | I cambi di ruolo si registrano su `add_user_role`/`remove_user_role` (non su `set_user_role`) | In WP 7.1 `set_role()` emette già i primi due: evitati eventi duplicati |
+| E8 | Script PowerShell per LocalWP (FASE-0-LOCALWP §2) sostituiti, per la Fase 1, da comandi WP-CLI (`wp bracelli status|migrate|module|diagnose|dev seed-users`) e dalla guida `docs/FASE-1-COLLAUDO-LOCALWP.md` | Gli script PowerShell non sono verificabili in questa sessione (nessun Windows); i comandi WP-CLI sono testati e funzionano anche nella shell di LocalWP |
+| E9 | Opzioni `bracelli_club_settings` e `bracelli_club_modules` create all'attivazione | Un'option inesistente costa una query a ogni richiesta (misurato) |
+| E10 | Test end-to-end su Apache + mod_php invece del server PHP integrato | Il server integrato si bloccava con le connessioni di Chrome; Apache è anche più vicino a un hosting reale |

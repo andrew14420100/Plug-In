@@ -1,0 +1,18 @@
+# Analisi statica del plugin. In CI l'estensione WordPress (szepeviktor/phpstan-wordpress)
+# viene caricata automaticamente da phpstan/extension-installer.
+parameters:
+	level: 6
+	phpVersion:
+		min: 80100
+		max: 80599
+	paths:
+		- plugin/bracelli-club
+	excludePaths:
+		- plugin/bracelli-club/assets/dist/*
+	bootstrapFiles:
+		- tests/phpstan-bootstrap.php
+	scanFiles:
+		- vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+	dynamicConstantNames:
+		- WP_CLI
+	treatPhpDocTypesAsCertain: false
