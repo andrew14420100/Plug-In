@@ -1,6 +1,6 @@
 # Bracelli Club Plug-In
 
-**Stato:** progettazione approvata come base di lavoro; sviluppo del plugin **non ancora avviato**.  
+**Stato:** Fase 0 (inventario e ADR) redatta e **in attesa di approvazione**; sviluppo del plugin **non ancora avviato**.  
 **Repository ufficiale:** https://github.com/andrew14420100/Plug-In  
 **Destinazione:** https://centrosportivobracelliclub.it/ (NON intervenire in produzione durante lo sviluppo).  
 **Strumenti:** Claude Code, WordPress, PHP, React/TypeScript, LocalWP (Windows), GitHub Actions.  
@@ -21,6 +21,11 @@ Un unico plugin WordPress modulare per centralizzare le funzioni del sito e del 
 | [docs/CLUB_MANAGER.md](docs/CLUB_MANAGER.md) | Regole e verifiche per la sincronizzazione del gestionale |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Fasi, dipendenze e criteri di accettazione |
 | [docs/TEST.md](docs/TEST.md) | Strategia di verifica, CI, prestazioni e rilascio |
+| [docs/ADR-001-core.md](docs/ADR-001-core.md) | Fase 0: architettura proposta del core, moduli, dati, permessi, criteri Fase 1 |
+| [docs/FASE-0-INVENTARIO.md](docs/FASE-0-INVENTARIO.md) | Fase 0: rilievo versioni, inventario plugin, ricognizione Club Manager (da compilare) |
+| [docs/FASE-0-LOCALWP.md](docs/FASE-0-LOCALWP.md) | Fase 0: ambiente LocalWP e dati sintetici |
+| [docs/FASE-0-REPORT.md](docs/FASE-0-REPORT.md) | Fase 0: verifiche eseguite/non eseguite e richieste di approvazione |
+| [CHANGELOG.md](CHANGELOG.md) | Registro delle modifiche |
 
 ## Principi non negoziabili
 
