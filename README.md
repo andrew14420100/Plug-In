@@ -1,6 +1,6 @@
 # Bracelli Club Plug-In
 
-**Stato:** progettazione approvata come base di lavoro; sviluppo del plugin **non ancora avviato**.  
+**Stato:** Fase 0 approvata. **Fase 1 (nucleo e dashboard) implementata in `plugin/bracelli-club`, versione 0.1.0, in attesa di collaudo e approvazione.** Nessuna release pubblicata.  
 **Repository ufficiale:** https://github.com/andrew14420100/Plug-In  
 **Destinazione:** https://centrosportivobracelliclub.it/ (NON intervenire in produzione durante lo sviluppo).  
 **Strumenti:** Claude Code, WordPress, PHP, React/TypeScript, LocalWP (Windows), GitHub Actions.  
@@ -21,6 +21,13 @@ Un unico plugin WordPress modulare per centralizzare le funzioni del sito e del 
 | [docs/CLUB_MANAGER.md](docs/CLUB_MANAGER.md) | Regole e verifiche per la sincronizzazione del gestionale |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Fasi, dipendenze e criteri di accettazione |
 | [docs/TEST.md](docs/TEST.md) | Strategia di verifica, CI, prestazioni e rilascio |
+| [docs/ADR-001-core.md](docs/ADR-001-core.md) | Fase 0: architettura proposta del core, moduli, dati, permessi, criteri Fase 1 |
+| [docs/FASE-0-INVENTARIO.md](docs/FASE-0-INVENTARIO.md) | Fase 0: rilievo versioni, inventario plugin, ricognizione Club Manager (da compilare) |
+| [docs/FASE-0-LOCALWP.md](docs/FASE-0-LOCALWP.md) | Fase 0: ambiente LocalWP e dati sintetici |
+| [docs/FASE-0-REPORT.md](docs/FASE-0-REPORT.md) | Fase 0: verifiche eseguite/non eseguite e richieste di approvazione |
+| [docs/FASE-1-REPORT.md](docs/FASE-1-REPORT.md) | Fase 1: moduli implementati, test eseguiti, benchmark, rischi |
+| [docs/FASE-1-COLLAUDO-LOCALWP.md](docs/FASE-1-COLLAUDO-LOCALWP.md) | Fase 1: checklist di collaudo manuale in LocalWP |
+| [CHANGELOG.md](CHANGELOG.md) | Registro delle modifiche |
 
 ## Principi non negoziabili
 
@@ -34,6 +41,29 @@ Un unico plugin WordPress modulare per centralizzare le funzioni del sito e del 
 8. **Prestazioni:** hosting condiviso TopHost, almeno 1.001–5.000 soci/anno, ~5 operatori contemporanei attesi; code limitate, elaborazione a blocchi, niente processi pesanti su ogni richiesta.
 9. **Aggiornamenti:** release testate, ZIP verificati, backup prima delle migrazioni, recupero, nessuna perdita silenziosa di dati.
 10. **Incrementalità:** progettare l'architettura completa, implementare e verificare una fase alla volta.
+
+## Sviluppo
+
+```text
+plugin/bracelli-club/   il plugin (PHP senza dipendenze runtime, asset compilati in assets/dist)
+frontend/               sorgenti React/TypeScript (bundle separati: dashboard, registro)
+tests/                  unit, integration (test suite WordPress), e2e (Playwright)
+bin/                    install-wp-tests, build-zip, e2e-setup, lifecycle-check, check-public-safety
+```
+
+```bash
+composer install && npm ci
+npm run build                      # asset React
+vendor/bin/phpunit -c phpunit-unit.xml.dist
+bin/install-wp-tests.sh wp_tests root '' 127.0.0.1 latest
+vendor/bin/phpunit -c phpunit-integration.xml.dist
+vendor/bin/phpcs && vendor/bin/phpstan analyse
+npm run lint:js && npm run lint:css && npm run typecheck && npm run test:js
+bin/build-zip.sh                   # dist/bracelli-club-<versione>.zip + .sha256
+bin/e2e-setup.sh && bin/lifecycle-check.sh && bin/e2e-setup.sh && npm run test:e2e
+```
+
+La CI (`.github/workflows/ci.yml`) esegue tutto su PHP 8.2–8.5 × WordPress 6.9 / 7.0 / ultima, più MariaDB, e pubblica lo ZIP come artefatto.
 
 ## Avvio con Claude Code
 

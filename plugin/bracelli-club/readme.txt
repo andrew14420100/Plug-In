@@ -1,0 +1,43 @@
+=== Bracelli Club ===
+Contributors: bracelliclub
+Tags: gestionale, centro sportivo, dashboard
+Requires at least: 6.9
+Tested up to: 7.1
+Requires PHP: 8.2
+Stable tag: 0.1.0
+
+Gestionale modulare del centro sportivo Bracelli Club. Fase 1: nucleo, dashboard, permessi, registro attività, diagnostica e ripristino.
+
+== Description ==
+
+Plugin ad uso esclusivo del sito Bracelli Club (non destinato alla directory WordPress.org).
+
+Funzioni della versione 0.1.0 (Fase 1):
+
+* Nucleo modulare con catalogo moduli, dipendenze, attivazione e disattivazione a cascata solo su conferma.
+* Dashboard Bracelli con contesto amministratore e dipendente, temi chiaro/scuro, tavolozze, widget riordinabili e preferiti per utente.
+* Ruoli Bracelli (segreteria, istruttore, gestore corsi) e matrice dei permessi verificata lato server.
+* Registro attività con dati personali mascherati.
+* Diagnostica essenziale e approfondita su richiesta.
+* Pagina di ripristino senza JavaScript e modalità sicura (`define( 'BRACELLI_CLUB_SAFE_MODE', true );`).
+* Impostazioni con esportazione e importazione con anteprima delle differenze.
+* Comandi WP-CLI: `wp bracelli status|migrate|module|diagnose`.
+
+Non include ancora: archivio soci, tessere, corsi, prenotazioni, incassi, documenti, sincronizzazione con Club Manager, aggiornamenti automatici. Le aree corrispondenti sono indicate come "non ancora disponibili".
+
+I requisiti minimi PHP 8.2 e WordPress 6.9 sono provvisori fino alla verifica dell'hosting.
+
+Licenza: non ancora definita dal proprietario del progetto.
+
+== Installation ==
+
+1. Fai un backup del sito.
+2. Carica `bracelli-club-0.1.0.zip` da Plugin → Aggiungi nuovo → Carica plugin.
+3. Attiva il plugin. Le tabelle `{prefisso}bc_migrations` e `{prefisso}bc_audit_events` vengono create automaticamente.
+
+La disattivazione e la disinstallazione NON eliminano i dati, salvo l'opzione esplicita "Elimina tutti i dati alla disinstallazione".
+
+== Changelog ==
+
+= 0.1.0 =
+* Prima versione: Fase 1 (nucleo e dashboard).

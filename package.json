@@ -1,0 +1,30 @@
+{
+  "name": "bracelli-club-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interfacce React/TypeScript del plugin Bracelli Club (compilate in plugin/bracelli-club/assets/dist).",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "lint:js": "wp-scripts lint-js frontend tests/e2e",
+    "lint:css": "wp-scripts lint-style \"frontend/src/**/*.scss\" \"plugin/bracelli-club/assets/css/*.css\"",
+    "typecheck": "tsc --noEmit",
+    "test:js": "wp-scripts test-unit-js --config jest.config.js",
+    "test:e2e": "playwright test -c tests/e2e/playwright.config.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@testing-library/react": "16.3.0",
+    "@types/jest": "30.0.0",
+    "@types/react": "18.3.28",
+    "@types/react-dom": "18.3.7",
+    "@wordpress/api-fetch": "7.55.0",
+    "@wordpress/element": "8.7.0",
+    "@wordpress/i18n": "6.28.0",
+    "@wordpress/scripts": "35.0.0",
+    "typescript": "5.9.3"
+  }
+}

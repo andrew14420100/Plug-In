@@ -1,0 +1,44 @@
+.bc-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 14px;
+}
+
+.bc-filter {
+	display: grid;
+	gap: 6px;
+
+	label {
+		font-size: 13px;
+		font-weight: 600;
+	}
+}
+
+.bc-filter--grow {
+	flex: 1;
+	min-width: 200px;
+
+	input {
+		width: 100%;
+	}
+}
+
+.bc-filter--actions {
+	display: flex;
+	gap: 8px;
+}
+
+.bc-button--small {
+	min-height: 30px;
+	padding: 4px 12px;
+	font-size: 13px;
+}
+
+.bc-pagination {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 12px;
+	margin-top: 16px;
+}
