@@ -21,6 +21,7 @@ final class Roles {
 	public const ISTRUTTORE    = 'bracelli_istruttore';
 	public const GESTORE_CORSI = 'bracelli_gestore_corsi';
 	public const DIPENDENTE    = 'bracelli_dipendente';
+	public const SOCIO         = 'bracelli_socio';
 
 	/**
 	 * Ruoli e capability predefinite. Le etichette non sono tradotte qui perché
@@ -32,20 +33,26 @@ final class Roles {
 		return [
 			self::SEGRETERIA    => [
 				'label' => 'Segreteria Bracelli',
-				'caps'  => [ Capabilities::DASHBOARD_VIEW, Capabilities::TURNI_MANAGE ],
+				'caps'  => [ Capabilities::DASHBOARD_VIEW, Capabilities::TURNI_MANAGE, Capabilities::CORSI_VIEW, Capabilities::CORSI_MANAGE ],
 			],
+			// Insegnante: vede solo le proprie lezioni e registra la propria presenza.
 			self::ISTRUTTORE    => [
 				'label' => 'Istruttore Bracelli',
-				'caps'  => [ Capabilities::DASHBOARD_VIEW ],
+				'caps'  => [ Capabilities::DASHBOARD_VIEW, Capabilities::CORSI_VIEW, Capabilities::CORSI_TEACH ],
 			],
 			self::GESTORE_CORSI => [
 				'label' => 'Gestore corsi Bracelli',
-				'caps'  => [ Capabilities::DASHBOARD_VIEW ],
+				'caps'  => [ Capabilities::DASHBOARD_VIEW, Capabilities::CORSI_VIEW, Capabilities::CORSI_MANAGE ],
 			],
 			// Prototipo Turni e presenze: usa solo l'area turni, senza bacheca WordPress.
 			self::DIPENDENTE    => [
 				'label' => 'Dipendente Bracelli',
 				'caps'  => [ Capabilities::TURNI_SELF ],
+			],
+			// Socio o cliente: per ora consulta il calendario dei corsi attivi.
+			self::SOCIO         => [
+				'label' => 'Socio Bracelli',
+				'caps'  => [ Capabilities::CORSI_VIEW ],
 			],
 		];
 	}

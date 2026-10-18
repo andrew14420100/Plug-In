@@ -65,11 +65,15 @@ final class SafeModeAndUninstallTest extends TestCase {
 		$this->assertFalse( get_role( 'administrator' )->has_cap( 'bracelli_dashboard_view' ) );
 		$this->assertSame( '', get_user_meta( $user, 'bracelli_club_prefs', true ) );
 		$this->assertNull( get_role( Roles::DIPENDENTE ) );
-		$this->assertCount( 4, $queries );
+		$this->assertNull( get_role( Roles::SOCIO ) );
+		$this->assertCount( 7, $queries );
 		global $wpdb;
 		$this->assertStringContainsString( $wpdb->prefix . 'bc_audit_events', $queries[0] );
 		$this->assertStringContainsString( $wpdb->prefix . 'bc_turni_shifts', $queries[2] );
 		$this->assertStringContainsString( $wpdb->prefix . 'bc_turni_attendance', $queries[3] );
+		$this->assertStringContainsString( $wpdb->prefix . 'bc_corsi_courses', $queries[4] );
+		$this->assertStringContainsString( $wpdb->prefix . 'bc_corsi_slots', $queries[5] );
+		$this->assertStringContainsString( $wpdb->prefix . 'bc_corsi_attendance', $queries[6] );
 
 		Roles::sync();
 	}

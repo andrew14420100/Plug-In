@@ -27,6 +27,8 @@ final class Registry {
 			new M2026100002InstallRoles(),
 			new M2026100003CreateShiftTables(),
 			new M2026100004GrantShiftCapabilities(),
+			new M2026100005CreateCourseTables(),
+			new M2026100006GrantCourseCapabilities(),
 		];
 	}
 }

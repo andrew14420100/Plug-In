@@ -8,10 +8,10 @@
 namespace Bracelli\Club\Tests\integration;
 
 use Bracelli\Club\Core\Permissions\Roles;
-use Bracelli\Club\Modules\Turni\Portal;
+use Bracelli\Club\Modules\Area\AreaModule;
+use Bracelli\Club\Modules\Area\Portal;
 use Bracelli\Club\Modules\Turni\ShiftRepository;
 use Bracelli\Club\Modules\Turni\ShiftService;
-use Bracelli\Club\Modules\Turni\TurniModule;
 
 final class TurniTest extends TestCase {
 
@@ -244,18 +244,24 @@ final class TurniTest extends TestCase {
 	}
 
 	public function test_login_redirect_and_portal_only_accounts(): void {
-		$module = new TurniModule();
-		$this->assertTrue( TurniModule::is_portal_only( $this->mario ) );
-		$this->assertFalse( TurniModule::is_portal_only( $this->segreteria ) );
+		$module = new AreaModule();
+		$this->assertTrue( AreaModule::is_portal_only( $this->mario ) );
+		// Anche la segreteria usa solo l'area riservata; l'amministratore e chi redige contenuti no.
+		$this->assertTrue( AreaModule::is_portal_only( $this->segreteria ) );
+		$admin = $this->user_with_role( 'administrator' );
+		$this->assertFalse( AreaModule::is_portal_only( $admin ) );
+		$this->assertFalse( AreaModule::is_portal_only( $this->user_with_role( 'editor' ) ) );
+		$this->assertFalse( AreaModule::is_portal_only( $this->user_with_role( 'subscriber' ) ) );
 		$this->assertSame( Portal::url(), $module->login_redirect( admin_url(), '', get_userdata( $this->mario ) ) );
-		$this->assertSame( admin_url(), $module->login_redirect( admin_url(), '', get_userdata( $this->segreteria ) ) );
+		$this->assertSame( Portal::url(), $module->login_redirect( admin_url(), '', get_userdata( $this->segreteria ) ) );
+		$this->assertSame( admin_url(), $module->login_redirect( admin_url(), '', get_userdata( $admin ) ) );
 		wp_set_current_user( $this->mario );
 		$this->assertFalse( $module->show_admin_bar( true ) );
 	}
 
 	public function test_short_url_is_used_only_after_verification(): void {
 		update_option( 'permalink_structure', '/%postname%/' );
-		delete_option( TurniModule::PRETTY_OPTION );
+		delete_option( AreaModule::PRETTY_OPTION );
 		$this->assertStringContainsString( '?bracelli_portal=1', Portal::url() );
 
 		// Il server risponde 404 da solo (per esempio senza .htaccess): resta l'indirizzo con il parametro.
@@ -272,13 +278,13 @@ final class TurniTest extends TestCase {
 		};
 		$not_found = $respond( 404, '<h1>Not Found</h1>' );
 		add_filter( 'pre_http_request', $not_found );
-		$this->assertFalse( TurniModule::check_pretty_url( true ) );
+		$this->assertFalse( AreaModule::check_pretty_url( true ) );
 		remove_filter( 'pre_http_request', $not_found );
 		$this->assertStringContainsString( '?bracelli_portal=1', Portal::url() );
 
 		$works = $respond( 200, '<html><body class="bcp">' );
 		add_filter( 'pre_http_request', $works );
-		$this->assertTrue( TurniModule::check_pretty_url( true ) );
+		$this->assertTrue( AreaModule::check_pretty_url( true ) );
 		remove_filter( 'pre_http_request', $works );
 		$this->assertSame( home_url( '/area-bracelli/' ), Portal::url() );
 
@@ -304,7 +310,7 @@ final class TurniTest extends TestCase {
 		$_GET                      = $get;
 		$_POST                     = $post;
 		$_SERVER['REQUEST_METHOD'] = [] === $post ? 'GET' : 'POST';
-		$portal                    = new Portal( $this->plugin, new ShiftService( new ShiftRepository( $wpdb ), $this->plugin->audit ) );
+		$portal                    = new Portal( $this->plugin );
 		ob_start();
 		try {
 			$portal->serve();
@@ -353,8 +359,8 @@ final class TurniTest extends TestCase {
 
 		[ , $location ] = $this->portal(
 			[
-				'bc_action' => 'attendance',
-				'turno'     => (string) $mine,
+				'bc_action' => 'turni_attendance',
+				'bc_id'     => (string) $mine,
 				'presenza'  => 'present',
 				'_bc_nonce' => 'falso',
 			]
@@ -365,19 +371,19 @@ final class TurniTest extends TestCase {
 		// Nonce valido (preso per il proprio turno) ma id del turno di un altro dipendente.
 		[ , $location ] = $this->portal(
 			[
-				'bc_action' => 'attendance',
-				'turno'     => (string) $others,
+				'bc_action' => 'turni_attendance',
+				'bc_id'     => (string) $others,
 				'presenza'  => 'present',
-				'_bc_nonce' => wp_create_nonce( 'bracelli_turni_attendance_' . $mine ),
+				'_bc_nonce' => wp_create_nonce( 'bracelli_portal_turni_attendance_' . $mine ),
 			]
 		);
 		$this->assertStringContainsString( 'esito=expired', $location );
 		[ , $location ] = $this->portal(
 			[
-				'bc_action' => 'attendance',
-				'turno'     => (string) $others,
+				'bc_action' => 'turni_attendance',
+				'bc_id'     => (string) $others,
 				'presenza'  => 'present',
-				'_bc_nonce' => wp_create_nonce( 'bracelli_turni_attendance_' . $others ),
+				'_bc_nonce' => wp_create_nonce( 'bracelli_portal_turni_attendance_' . $others ),
 			]
 		);
 		$this->assertStringContainsString( 'esito=not_found', $location );
@@ -385,10 +391,10 @@ final class TurniTest extends TestCase {
 
 		[ , $location ] = $this->portal(
 			[
-				'bc_action' => 'attendance',
-				'turno'     => (string) $mine,
+				'bc_action' => 'turni_attendance',
+				'bc_id'     => (string) $mine,
 				'presenza'  => 'present',
-				'_bc_nonce' => wp_create_nonce( 'bracelli_turni_attendance_' . $mine ),
+				'_bc_nonce' => wp_create_nonce( 'bracelli_portal_turni_attendance_' . $mine ),
 			]
 		);
 		$this->assertStringContainsString( 'esito=attendance_saved', $location );
@@ -399,12 +405,12 @@ final class TurniTest extends TestCase {
 		wp_set_current_user( $this->mario );
 		[ , $location ] = $this->portal(
 			[
-				'bc_action'   => 'create',
+				'bc_action'   => 'turni_create',
 				'employee_id' => (string) $this->mario,
 				'shift_date'  => self::TODAY,
 				'start_time'  => '09:00',
 				'end_time'    => '10:00',
-				'_bc_nonce'   => wp_create_nonce( 'bracelli_turni_create' ),
+				'_bc_nonce'   => wp_create_nonce( 'bracelli_portal_turni_create' ),
 			]
 		);
 		$this->assertStringContainsString( 'esito=forbidden', $location );
@@ -415,12 +421,12 @@ final class TurniTest extends TestCase {
 		wp_set_current_user( $this->segreteria );
 		[ $html ] = $this->portal(
 			[
-				'bc_action'   => 'create',
+				'bc_action'   => 'turni_create',
 				'employee_id' => (string) $this->mario,
 				'shift_date'  => self::TODAY,
 				'start_time'  => '18:00',
 				'end_time'    => '09:00',
-				'_bc_nonce'   => wp_create_nonce( 'bracelli_turni_create' ),
+				'_bc_nonce'   => wp_create_nonce( 'bracelli_portal_turni_create' ),
 			]
 		);
 		$this->assertStringContainsString( 'aria-invalid="true"', $html );
@@ -428,12 +434,12 @@ final class TurniTest extends TestCase {
 
 		[ , $location ] = $this->portal(
 			[
-				'bc_action'   => 'create',
+				'bc_action'   => 'turni_create',
 				'employee_id' => (string) $this->mario,
 				'shift_date'  => self::TODAY,
 				'start_time'  => '09:00',
 				'end_time'    => '18:00',
-				'_bc_nonce'   => wp_create_nonce( 'bracelli_turni_create' ),
+				'_bc_nonce'   => wp_create_nonce( 'bracelli_portal_turni_create' ),
 			]
 		);
 		$this->assertStringContainsString( 'esito=created', $location );

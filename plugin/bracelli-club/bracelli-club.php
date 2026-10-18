@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       Bracelli Club
- * Description:       Gestionale modulare del centro sportivo Bracelli Club: nucleo, dashboard, permessi, registro attività, diagnostica e prototipo Turni e presenze.
- * Version:           0.2.0
+ * Description:       Gestionale modulare del centro sportivo Bracelli Club: nucleo, dashboard, permessi, registro attività, diagnostica, area riservata, corsi e presenze insegnanti, turni del personale.
+ * Version:           0.3.0
  * Requires at least: 6.9
  * Requires PHP:      8.2
  * Author:            Bracelli Club
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BRACELLI_CLUB_VERSION', '0.2.0' );
+define( 'BRACELLI_CLUB_VERSION', '0.3.0' );
 define( 'BRACELLI_CLUB_FILE', __FILE__ );
 define( 'BRACELLI_CLUB_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BRACELLI_CLUB_URL', plugin_dir_url( __FILE__ ) );

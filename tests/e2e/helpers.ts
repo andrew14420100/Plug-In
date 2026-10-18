@@ -8,9 +8,16 @@ export const USERS = {
 	subscriber: { user: 'abbonato', pass: 'e2e-sub-pass' },
 	employee1: { user: 'dipendente1', pass: 'e2e-dip1-pass' },
 	employee2: { user: 'dipendente2', pass: 'e2e-dip2-pass' },
+	teacher1: { user: 'insegnante1', pass: 'e2e-ins1-pass' },
+	teacher2: { user: 'insegnante2', pass: 'e2e-ins2-pass' },
+	member: { user: 'socio1', pass: 'e2e-socio-pass' },
 };
 
-export async function login( page: Page, who: keyof typeof USERS ) {
+export async function login(
+	page: Page,
+	who: keyof typeof USERS,
+	landing: RegExp = /\/wp-admin\//
+) {
 	await page.goto( '/wp-login.php', { waitUntil: 'load' } );
 	// La pagina di login sposta il focus con un timer: si ricompila finché i valori non sono quelli attesi.
 	for ( let attempt = 0; attempt < 3; attempt++ ) {
@@ -25,7 +32,7 @@ export async function login( page: Page, who: keyof typeof USERS ) {
 		await page.waitForTimeout( 300 );
 	}
 	await page.click( '#wp-submit' );
-	await page.waitForURL( /\/wp-admin\//, { waitUntil: 'domcontentloaded' } );
+	await page.waitForURL( landing, { waitUntil: 'domcontentloaded' } );
 }
 
 /**

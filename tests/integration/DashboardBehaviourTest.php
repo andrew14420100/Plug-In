@@ -6,6 +6,7 @@
 namespace Bracelli\Club\Tests\integration;
 
 use Bracelli\Club\Core\Admin\Pages;
+use Bracelli\Club\Modules\Area\Portal;
 use Bracelli\Club\Core\Permissions\Roles;
 use Bracelli\Club\Modules\Dashboard\DashboardModule;
 
@@ -18,16 +19,19 @@ final class DashboardBehaviourTest extends TestCase {
 	}
 
 	public function test_login_redirect_goes_to_bracelli_dashboard_only_when_appropriate(): void {
+		$admin = new \WP_User( $this->user_with_role( 'administrator' ) );
 		$staff = new \WP_User( $this->user_with_role( Roles::SEGRETERIA ) );
 		$sub   = new \WP_User( $this->user_with_role( 'subscriber' ) );
 		$dash  = Pages::url( Pages::PARENT );
 
-		$this->assertSame( $dash, apply_filters( 'login_redirect', admin_url(), '', $staff ) );
-		$this->assertSame( admin_url( 'edit.php' ), apply_filters( 'login_redirect', admin_url( 'edit.php' ), admin_url( 'edit.php' ), $staff ), 'Una destinazione esplicita viene rispettata.' );
+		$this->assertSame( $dash, apply_filters( 'login_redirect', admin_url(), '', $admin ) );
+		$this->assertSame( admin_url( 'edit.php' ), apply_filters( 'login_redirect', admin_url( 'edit.php' ), admin_url( 'edit.php' ), $admin ), 'Una destinazione esplicita viene rispettata.' );
 		$this->assertSame( admin_url(), apply_filters( 'login_redirect', admin_url(), '', $sub ) );
+		// La segreteria usa l'area riservata, non la bacheca WordPress.
+		$this->assertSame( Portal::url(), apply_filters( 'login_redirect', admin_url(), '', $staff ) );
 
-		$this->plugin->preferences->update( $staff->ID, [ 'login_to_dashboard' => false ] );
-		$this->assertSame( admin_url(), apply_filters( 'login_redirect', admin_url(), '', $staff ) );
+		$this->plugin->preferences->update( $admin->ID, [ 'login_to_dashboard' => false ] );
+		$this->assertSame( admin_url(), apply_filters( 'login_redirect', admin_url(), '', $admin ) );
 	}
 
 	public function test_wp_menu_hiding_is_per_user_and_never_on_recovery(): void {

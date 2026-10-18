@@ -4,6 +4,13 @@ Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it/1.1.0/); ver
 
 ## [Non rilasciato]
 
+### Aggiunto — Area riservata, corsi e presenze insegnanti (plugin 0.3.0, solo prove locali, non rilasciato)
+- Modulo `area`: portale frontend unico (accesso con nome utente o email tramite WordPress, nessuna registrazione pubblica), indirizzo canonico `?bracelli_portal=1` con indirizzo breve verificato, shortcode `[bracelli_area_riservata]` per il pulsante nell'header, segreteria/insegnanti/dipendenti/soci tenuti fuori dalla bacheca WordPress.
+- Modulo `corsi`: corsi, orari settimanali e presenze degli insegnanti (tabelle `bc_corsi_*`, migrazioni `2026_10_0005` e `2026_10_0006`); importazione CSV ripetibile con anteprima, conflitti con le modifiche manuali e rapporto (bacheca e `wp bracelli-corsi import`); viste Calendario corsi, Le mie lezioni (Presente/Assente), Presenze insegnanti e Orari dei corsi con storico e annullamento senza cancellazione.
+- Ruolo "Socio Bracelli"; l'Istruttore è l'insegnante; capability `bracelli_corsi_view|teach|manage|import`.
+- Il modulo Turni diventa una sezione dell'area riservata (stesso portale).
+- Test: 18 di integrazione e 9 end-to-end nuovi; ciclo di vita esteso; documento `docs/AREA-RISERVATA-CORSI.md`.
+
 ### Aggiunto — Prototipo Turni e presenze (plugin 0.2.0, solo LocalWP, non rilasciato)
 - Modulo `turni` 0.1.0: area riservata frontend `/area-bracelli/` indipendente dal tema, con accesso tramite le credenziali WordPress.
 - Segreteria: elenco turni con filtri e riepilogo presenze, creazione, modifica di data e orario, annullamento con storico (nessuna eliminazione).

@@ -64,7 +64,7 @@ final class RestPermissionsTest extends TestCase {
 		$this->assertNotContains( 'modules', $ids );
 		$this->assertNotContains( 'activity', $ids );
 		$this->assertNotContains( 'health', $ids );
-		$this->assertSame( [ 'dashboard', 'turni' ], array_column( $data['nav'], 'id' ) );
+		$this->assertSame( [ 'dashboard' ], array_column( $data['nav'], 'id' ) );
 		$this->assertSame( 403, $this->request( 'GET', '/bracelli/v1/audit' )->get_status() );
 	}
 

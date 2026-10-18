@@ -84,12 +84,20 @@ final class Navigation {
 			],
 			// In coda: la dashboard aggiunge in fondo le voci che l'utente non ha ancora ordinato.
 			[
-				'id'     => 'turni',
-				'label'  => __( 'Turni e presenze', 'bracelli-club' ),
-				'slug'   => 'bracelli-turni',
+				'id'     => 'area',
+				'label'  => __( 'Area riservata', 'bracelli-club' ),
+				'slug'   => 'bracelli-area',
+				'icon'   => 'user',
+				'cap'    => 'manage_options',
+				'module' => 'area',
+			],
+			[
+				'id'     => 'corsi',
+				'label'  => __( 'Importa corsi', 'bracelli-club' ),
+				'slug'   => 'bracelli-corsi-import',
 				'icon'   => 'calendar',
-				'cap'    => Capabilities::TURNI_MANAGE,
-				'module' => 'turni',
+				'cap'    => Capabilities::CORSI_IMPORT,
+				'module' => 'corsi',
 			],
 		];
 	}

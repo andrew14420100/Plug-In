@@ -42,8 +42,11 @@ test.describe.serial( 'Turni e presenze', () => {
 	} ) => {
 		const errors = collectErrors( page );
 		await portalLogin( page, 'staff' );
-		await expect( page.locator( 'h1' ) ).toHaveText( 'Turni e presenze' );
-		await page.click( 'a.bcp-tab:has-text("Nuovo turno")' );
+		await page.click( 'a.bcp-tab:has-text("Turni del personale")' );
+		await expect( page.locator( 'h1' ) ).toHaveText(
+			'Turni del personale'
+		);
+		await page.goto( PORTAL + '?vista=nuovo' );
 
 		// Errore di validazione: il modulo viene ripresentato con il campo evidenziato.
 		await page.selectOption( '#bcp-employee', {
@@ -106,7 +109,7 @@ test.describe.serial( 'Turni e presenze', () => {
 		).toHaveCount( 0 );
 		await shot( page, 'turni-segreteria-dettaglio' );
 
-		await page.goto( PORTAL );
+		await page.goto( PORTAL + '?vista=turni' );
 		await expect( page.locator( 'tbody tr.is-cancelled' ) ).toHaveCount(
 			1
 		);
@@ -128,7 +131,7 @@ test.describe.serial( 'Turni e presenze', () => {
 			'Dipendente Prova Due'
 		);
 		await expect(
-			page.locator( 'a.bcp-tab:has-text("Nuovo turno")' )
+			page.locator( 'a.bcp-tab:has-text("Turni del personale")' )
 		).toHaveCount( 0 );
 
 		const card = page.locator( 'article.bcp-shift', {
@@ -173,7 +176,7 @@ test.describe.serial( 'Turni e presenze', () => {
 		// Dipendente 2: legge l'id del proprio turno, poi il dipendente 1 prova a usarlo.
 		await portalLogin( page, 'employee2' );
 		const id = await page
-			.locator( 'article.bcp-shift input[name="turno"]' )
+			.locator( 'article.bcp-shift input[name="bc_id"]' )
 			.first()
 			.inputValue();
 		await portalLogin( page, 'employee1' );
@@ -183,8 +186,8 @@ test.describe.serial( 'Turni e presenze', () => {
 			.inputValue();
 		const response = await page.request.post( PORTAL, {
 			form: {
-				bc_action: 'attendance',
-				turno: id,
+				bc_action: 'turni_attendance',
+				bc_id: id,
 				presenza: 'absent',
 				_bc_nonce: nonce,
 			},
@@ -205,6 +208,7 @@ test.describe.serial( 'Turni e presenze', () => {
 		page,
 	} ) => {
 		await portalLogin( page, 'staff' );
+		await page.goto( PORTAL + '?vista=turni' );
 		const row = page.locator( 'tbody tr', { hasText: '08:00–12:00' } );
 		await expect( row.locator( '.bcp-badge--present' ) ).toBeVisible();
 		await expect( row.locator( 'a:has-text("Annulla")' ) ).toHaveCount( 0 );
@@ -225,25 +229,27 @@ test.describe.serial( 'Turni e presenze', () => {
 			'bracelli-settings',
 			'bracelli-permissions',
 		] ) {
-			const response = await page.goto(
-				`/wp-admin/admin.php?page=${ slug }`
-			);
-			expect( response?.status() ).toBe( 403 );
+			await page.goto( `/wp-admin/admin.php?page=${ slug }` );
+			await expect( page ).toHaveURL( /area-bracelli|bracelli_portal=1/ );
 		}
-		const users = await page.goto( '/wp-admin/users.php' );
-		expect( users?.status() ).toBe( 403 );
+		await page.goto( '/wp-admin/users.php' );
+		await expect( page ).toHaveURL( /area-bracelli|bracelli_portal=1/ );
 	} );
 
 	test( "l'amministratore trova l'indirizzo corretto dell'area turni", async ( {
 		page,
 	} ) => {
 		await login( page, 'admin' );
-		await page.goto( '/wp-admin/admin.php?page=bracelli-turni' );
+		await page.goto( '/wp-admin/admin.php?page=bracelli-area' );
 		// Su questo server (Apache con .htaccess) l'indirizzo breve funziona e viene verificato.
-		const button = page.getByRole( 'link', { name: "Apri l'area turni" } );
+		const button = page.getByRole( 'link', {
+			name: "Apri l'area riservata",
+		} );
 		await expect( button ).toHaveAttribute( 'href', /\/area-bracelli\/$/ );
 		await button.click();
-		await expect( page.locator( 'h1' ) ).toHaveText( 'Turni e presenze' );
+		await expect( page.locator( 'h1' ) ).toHaveText(
+			'Presenze degli insegnanti'
+		);
 	} );
 
 	test( 'un abbonato senza permessi non vede nulla', async ( { page } ) => {
@@ -269,6 +275,7 @@ test.describe.serial( 'Turni e presenze', () => {
 		await page.fill( '#bcp-log', USERS.staff.user );
 		await page.fill( '#bcp-pwd', USERS.staff.pass );
 		await page.click( 'button[type="submit"]' );
+		await page.goto( PORTAL + '?vista=turni' );
 		await expect( page.locator( 'tbody tr' ).first() ).toBeVisible();
 		const overflow = await page.evaluate(
 			() =>

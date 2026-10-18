@@ -146,3 +146,7 @@ Prova dell'utente su XAMPP (Apache 2.4.58 Win64, PHP 8.2.12, WordPress in `local
 - area della dashboard rinominata "Corsi e presenze iscritti"; nel pacchetto 0.1.7 anche il testo di benvenuto (presente solo nel bundle della 0.1.5) cita il prototipo.
 
 Verifiche 0.1.7: sintassi PHP; aggiornamento 0.1.6 → 0.1.7; senza `.htaccess` il pulsante porta a `?bracelli_portal=1` e l'area funziona; con `.htaccess` porta a `/area-bracelli/`; 9 test end-to-end dei turni superati; `debug.log` vuoto. Nel branch: 65 test di integrazione e 22 end-to-end superati (due esecuzioni).
+
+### Dalla versione 0.3.0
+
+Il portale è diventato l'area riservata unica (modulo `area`, vedi [AREA-RISERVATA-CORSI.md](AREA-RISERVATA-CORSI.md)): i turni sono la sezione «Turni del personale» e anche la segreteria usa l'area riservata invece della bacheca WordPress.

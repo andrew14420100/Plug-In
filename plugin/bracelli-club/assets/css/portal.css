@@ -98,6 +98,14 @@ body.bcp {
 	display: flex;
 	gap: 12px;
 	align-items: center;
+	color: var(--bcp-brand-text);
+	text-decoration: none;
+}
+
+.bcp-brand:focus-visible {
+	outline: none;
+	box-shadow: var(--bcp-focus);
+	border-radius: 8px;
 }
 
 .bcp-logo {
@@ -536,4 +544,104 @@ body.bcp {
 	background: var(--bcp-absent);
 	border-color: var(--bcp-absent);
 	color: var(--bcp-surface);
+}
+
+/* Pagina Accedi */
+.bcp-login__logo {
+	display: block;
+	width: 120px;
+	height: auto;
+	margin: 0 auto 8px;
+}
+
+/* Calendario settimanale dei corsi */
+.bcp-week {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+.bcp-week .bcp-card {
+	margin: 0;
+}
+
+.bcp-day h2 {
+	margin-top: 0;
+	padding-bottom: 8px;
+	border-bottom: 2px solid var(--bcp-accent);
+}
+
+.bcp-lessons,
+.bcp-plain,
+.bcp-slots {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.bcp-lessons li {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 0 10px;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--bcp-border);
+}
+
+.bcp-lessons li:last-child {
+	border-bottom: 0;
+}
+
+.bcp-lesson__time {
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.bcp-lesson__section {
+	grid-column: 2;
+}
+
+.bcp-plain li {
+	padding: 6px 0;
+}
+
+/* Corsi e orari (segreteria) */
+.bcp-course__head {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 12px;
+	align-items: baseline;
+	justify-content: space-between;
+}
+
+.bcp-course__head h2 {
+	margin: 0;
+}
+
+.bcp-slots li {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 12px;
+	align-items: center;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--bcp-border);
+}
+
+.bcp-slots li.is-cancelled .bcp-slot__when {
+	color: var(--bcp-muted);
+	text-decoration: line-through;
+}
+
+.bcp-slot__when {
+	min-width: 170px;
+	font-weight: 600;
+}
+
+.bcp-slot__teacher {
+	flex: 1 1 200px;
+}
+
+.bcp-shift__course {
+	margin: 4px 0 0;
+	font-weight: 600;
 }

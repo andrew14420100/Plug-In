@@ -4,13 +4,19 @@ Tags: gestionale, centro sportivo, dashboard
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 
-Gestionale modulare del centro sportivo Bracelli Club: nucleo della Fase 1 e prototipo Turni e presenze (solo per prove in locale).
+Gestionale modulare del centro sportivo Bracelli Club: nucleo della Fase 1, area riservata, corsi e presenze degli insegnanti, turni del personale (solo per prove in locale).
 
 == Description ==
 
 Plugin ad uso esclusivo del sito Bracelli Club (non destinato alla directory WordPress.org).
+
+Novità della versione 0.3.0 (solo prove in locale):
+
+* Area riservata unica con accesso tramite nome utente o email; pulsante con lo shortcode [bracelli_area_riservata].
+* Corsi e orari importati da file CSV con anteprima; calendario dei corsi, lezioni dell'insegnante con Presente/Assente, quadro delle presenze e gestione degli orari per la segreteria.
+* Ruolo "Socio Bracelli"; l'Istruttore Bracelli è l'insegnante.
 
 Prototipo della versione 0.2.0 (solo per prove in LocalWP, non per il sito pubblico):
 
@@ -39,12 +45,15 @@ Licenza: non ancora definita dal proprietario del progetto.
 == Installation ==
 
 1. Fai un backup del sito.
-2. Carica `bracelli-club-0.2.0.zip` da Plugin → Aggiungi nuovo → Carica plugin.
+2. Carica `bracelli-club-0.3.0.zip` da Plugin → Aggiungi nuovo → Carica plugin.
 3. Attiva il plugin. Le tabelle `{prefisso}bc_migrations`, `{prefisso}bc_audit_events`, `{prefisso}bc_turni_shifts` e `{prefisso}bc_turni_attendance` vengono create automaticamente.
 
 La disattivazione e la disinstallazione NON eliminano i dati, salvo l'opzione esplicita "Elimina tutti i dati alla disinstallazione".
 
 == Changelog ==
+
+= 0.3.0 =
+* Area riservata, corsi e presenze degli insegnanti (prova locale, non rilasciato).
 
 = 0.2.0 =
 * Prototipo "Turni e presenze" per le prove in locale (non rilasciato).

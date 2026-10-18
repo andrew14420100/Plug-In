@@ -37,6 +37,8 @@ $WP option get bracelli_club_settings >/dev/null 2>&1 || $WP option get bracelli
 $WP role exists bracelli_segreteria || fail "ruolo eliminato senza flag"
 $WP role exists bracelli_dipendente || fail "ruolo dipendente eliminato senza flag"
 [ "$(shifts)" = "1" ] || fail "turni eliminati senza flag"
+table_exists bc_corsi_courses || fail "tabella corsi eliminata senza flag"
+$WP role exists bracelli_socio || fail "ruolo socio eliminato senza flag"
 
 echo "4. Reinstallazione dallo ZIP: dati ritrovati"
 $WP plugin install "$E2E_ZIP" --activate --quiet
@@ -53,6 +55,10 @@ table_exists bc_audit_events && fail "tabella non eliminata con flag"
 table_exists bc_migrations && fail "registro migrazioni non eliminato con flag"
 table_exists bc_turni_shifts && fail "tabella turni non eliminata con flag"
 table_exists bc_turni_attendance && fail "tabella presenze non eliminata con flag"
+table_exists bc_corsi_courses && fail "tabella corsi non eliminata con flag"
+table_exists bc_corsi_slots && fail "tabella orari non eliminata con flag"
+table_exists bc_corsi_attendance && fail "tabella presenze insegnanti non eliminata con flag"
+$WP role exists bracelli_socio 2>/dev/null && fail "ruolo socio non eliminato con flag"
 $WP role exists bracelli_dipendente 2>/dev/null && fail "ruolo dipendente non eliminato con flag"
 $WP role exists bracelli_segreteria 2>/dev/null && fail "ruolo non eliminato con flag"
 $WP option get bracelli_club_settings >/dev/null 2>&1 && fail "opzioni non eliminate con flag"
@@ -61,6 +67,7 @@ echo "7. Installazione pulita dopo l'eliminazione"
 $WP plugin install "$E2E_ZIP" --activate --quiet
 table_exists bc_audit_events || fail "tabelle non ricreate"
 table_exists bc_turni_shifts || fail "tabella turni non ricreata"
+table_exists bc_corsi_slots || fail "tabella orari non ricreata"
 
 OLD_ZIP="$ROOT/dist/bracelli-club-0.1.0.zip"
 if [ -f "$OLD_ZIP" ] && [ "$OLD_ZIP" != "$E2E_ZIP" ]; then

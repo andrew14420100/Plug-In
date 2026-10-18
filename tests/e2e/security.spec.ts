@@ -2,32 +2,25 @@ import { expect, test } from '@playwright/test';
 import { login, newPageWithoutJs, shot, waitForDashboard } from './helpers';
 
 test.describe( 'Permessi e sicurezza', () => {
-	test( 'la segreteria vede il contesto dipendente e non accede alle pagine riservate', async ( {
+	test( "la segreteria entra nell'area riservata e non nella bacheca WordPress", async ( {
 		page,
 	} ) => {
-		await login( page, 'staff' );
-		await expect( page ).toHaveURL( /page=bracelli$/ );
-		await waitForDashboard( page );
-		await expect( page.getByText( 'Area personale' ) ).toBeVisible();
-		await expect(
-			page.getByRole( 'heading', { level: 3, name: 'Stato moduli' } )
-		).toHaveCount( 0 );
-		await expect(
-			page.getByRole( 'heading', { level: 3, name: 'Attività recenti' } )
-		).toHaveCount( 0 );
-		await shot( page, '07-dashboard-segreteria' );
+		await login( page, 'staff', /area-bracelli|bracelli_portal=1/ );
+		await expect( page.locator( '.bcp-user__name' ) ).toBeVisible();
+		await shot( page, '07-area-segreteria' );
 
 		for ( const slug of [
+			'bracelli',
 			'bracelli-modules',
 			'bracelli-settings',
 			'bracelli-permissions',
 			'bracelli-audit',
 			'bracelli-recovery',
 		] ) {
-			const response = await page.goto(
-				`/wp-admin/admin.php?page=${ slug }`
+			await page.goto( `/wp-admin/admin.php?page=${ slug }` );
+			await expect( page, slug ).toHaveURL(
+				/area-bracelli|bracelli_portal=1/
 			);
-			expect( response?.status(), slug ).toBe( 403 );
 		}
 	} );
 
@@ -39,7 +32,9 @@ test.describe( 'Permessi e sicurezza', () => {
 		);
 		expect( anon.status() ).toBe( 401 );
 
-		await login( page, 'staff' );
+		// La segreteria non usa più la bacheca: il nonce REST si prende dalla dashboard dell'amministratore.
+		// Il rifiuto del registro alla segreteria (403) è verificato dai test di integrazione REST.
+		await login( page, 'admin' );
 		await waitForDashboard( page );
 		const results = await page.evaluate( async () => {
 			const nonce = (
@@ -48,9 +43,6 @@ test.describe( 'Permessi e sicurezza', () => {
 				}
 			 ).wp.apiFetch.nonceMiddleware.nonce;
 			const base = '/?rest_route=';
-			const audit = await fetch( `${ base }/bracelli/v1/audit`, {
-				headers: { 'X-WP-Nonce': nonce },
-			} );
 			const noNonce = await fetch(
 				`${ base }/bracelli/v1/me/preferences`,
 				{
@@ -84,13 +76,11 @@ test.describe( 'Permessi e sicurezza', () => {
 				}
 			);
 			return {
-				audit: audit.status,
 				noNonce: noNonce.status,
 				forged: forged.status,
 				invalid: invalid.status,
 			};
 		} );
-		expect( results.audit ).toBe( 403 );
 		expect( results.noNonce ).toBe( 401 );
 		expect( results.forged ).toBe( 403 );
 		expect( results.invalid ).toBe( 400 );
