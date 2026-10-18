@@ -253,6 +253,40 @@ final class TurniTest extends TestCase {
 		$this->assertFalse( $module->show_admin_bar( true ) );
 	}
 
+	public function test_short_url_is_used_only_after_verification(): void {
+		update_option( 'permalink_structure', '/%postname%/' );
+		delete_option( TurniModule::PRETTY_OPTION );
+		$this->assertStringContainsString( '?bracelli_portal=1', Portal::url() );
+
+		// Il server risponde 404 da solo (per esempio senza .htaccess): resta l'indirizzo con il parametro.
+		$respond = static function ( int $code, string $body ) {
+			return static fn() => [
+				'headers'  => [],
+				'body'     => $body,
+				'response' => [
+					'code'    => $code,
+					'message' => '',
+				],
+				'cookies'  => [],
+			];
+		};
+		$not_found = $respond( 404, '<h1>Not Found</h1>' );
+		add_filter( 'pre_http_request', $not_found );
+		$this->assertFalse( TurniModule::check_pretty_url( true ) );
+		remove_filter( 'pre_http_request', $not_found );
+		$this->assertStringContainsString( '?bracelli_portal=1', Portal::url() );
+
+		$works = $respond( 200, '<html><body class="bcp">' );
+		add_filter( 'pre_http_request', $works );
+		$this->assertTrue( TurniModule::check_pretty_url( true ) );
+		remove_filter( 'pre_http_request', $works );
+		$this->assertSame( home_url( '/area-bracelli/' ), Portal::url() );
+
+		// Se cambiano i permalink la verifica non vale più.
+		update_option( 'permalink_structure', '' );
+		$this->assertStringContainsString( '?bracelli_portal=1', Portal::url() );
+	}
+
 	/* --------------------------------------------------------------
 	 * Richieste al portale (moduli HTML con nonce)
 	 * -------------------------------------------------------------- */
@@ -415,6 +449,8 @@ final class TurniTest extends TestCase {
 		);
 		$this->assertStringContainsString( 'Dipendente Fittizio Uno', $html );
 		$this->assertStringContainsString( '09:00–18:00', $html );
+		// Il modulo dei filtri (GET) conserva il parametro dell'area anche senza indirizzo breve.
+		$this->assertStringContainsString( 'name="bracelli_portal" value="1"', $html );
 	}
 
 	public function test_portal_output_is_escaped(): void {

@@ -35,14 +35,6 @@ final class Navigation {
 				'module' => 'dashboard',
 			],
 			[
-				'id'     => 'turni',
-				'label'  => __( 'Turni e presenze', 'bracelli-club' ),
-				'slug'   => 'bracelli-turni',
-				'icon'   => 'calendar',
-				'cap'    => Capabilities::TURNI_MANAGE,
-				'module' => 'turni',
-			],
-			[
 				'id'     => 'modules',
 				'label'  => __( 'Moduli', 'bracelli-club' ),
 				'slug'   => 'bracelli-modules',
@@ -89,6 +81,15 @@ final class Navigation {
 				'icon'   => 'lifebuoy',
 				'cap'    => 'manage_options',
 				'module' => 'recovery',
+			],
+			// In coda: la dashboard aggiunge in fondo le voci che l'utente non ha ancora ordinato.
+			[
+				'id'     => 'turni',
+				'label'  => __( 'Turni e presenze', 'bracelli-club' ),
+				'slug'   => 'bracelli-turni',
+				'icon'   => 'calendar',
+				'cap'    => Capabilities::TURNI_MANAGE,
+				'module' => 'turni',
 			],
 		];
 	}

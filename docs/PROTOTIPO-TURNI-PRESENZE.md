@@ -17,7 +17,7 @@ Restano fuori: timbrature di entrata e uscita, ritardi, giustificazioni, certifi
 | # | Decisione | Motivo |
 | --- | --- | --- |
 | P1 | Il prototipo è un **modulo** (`turni`) del plugin esistente, costruito sopra il nucleo della Fase 1 (PR #2, non ancora unita) | Riusa migrazioni, registro attività, permessi, modalità sicura e moduli disattivabili invece di duplicarli |
-| P2 | Area riservata **frontend** servita dal plugin all'indirizzo `/area-bracelli/` (con permalink semplici: `/?bracelli_portal=1`) | I dipendenti non usano la bacheca WordPress; la pagina non dipende dal tema né da Elementor |
+| P2 | Area riservata **frontend** servita dal plugin: `/?bracelli_portal=1` funziona con qualsiasi server; l'indirizzo breve `/area-bracelli/` si usa solo dopo che il plugin ha verificato che il server lo inoltra a WordPress | I dipendenti non usano la bacheca WordPress; la pagina non dipende dal tema né da Elementor |
 | P3 | Nuovo ruolo **"Dipendente Bracelli"** creato dal plugin; la Segreteria riceve la capability "Gestione turni" | Serve per provare i due ruoli. È un'**eccezione dichiarata** alla regola F2 (nessun ruolo creato automaticamente): da rivedere nella fase dedicata ai permessi. Nessun ruolo viene assegnato ad account esistenti |
 | P4 | I turni **non si eliminano**: si annullano e restano nello storico | Requisito "annullare conservando lo storico"; nessuna cancellazione definitiva per la segreteria |
 | P5 | Un turno con presenza già registrata, o annullato, non si modifica più | Evita che la registrazione del dipendente si riferisca a un orario diverso da quello mostrato |
@@ -48,7 +48,7 @@ Controlli sul server (non solo nell'interfaccia): ogni operazione passa da `Shif
 2. Annota le versioni: clic destro sul sito → *Open site shell* → `wp core version` e `php -v`. Il plugin richiede (provvisoriamente) PHP 8.2 e WordPress 6.9: se sono inferiori, si rifiuta di attivarsi con un messaggio.
 3. Bacheca → **Impostazioni → Generali → Fuso orario: Roma** (la data "di oggi" dei turni dipende da questa impostazione).
 4. **Plugin → Aggiungi nuovo → Carica plugin** → `bracelli-club-0.2.0.zip` → Installa → Attiva.
-5. **Bracelli Club → Turni e presenze**: la pagina mostra l'indirizzo dell'area turni (di solito `http://bracelli-turni.local/area-bracelli/`).
+5. **Bracelli Club → Turni e presenze** → **Apri l'area turni**. Usa l'indirizzo mostrato in quella pagina, senza scriverlo a mano: è `…/area-bracelli/` se il server lo supporta, altrimenti `…/?bracelli_portal=1` (per esempio con XAMPP senza `.htaccess`, dove `/area-bracelli/` dà "Not Found" di Apache).
 
 ## 5. Account fittizi
 
@@ -111,7 +111,7 @@ I test di sicurezza coprono: dipendente che prova a creare, modificare o annulla
 
 1. Nessuna protezione propria contro i tentativi ripetuti di accesso: il modulo di accesso usa il login di WordPress, quindi valgono le protezioni eventualmente già installate (richiesta F6, da realizzare in una fase successiva).
 2. Il dipendente non ha una pagina per cambiare la password: usa "Password dimenticata?" (serve l'invio di email funzionante; in LocalWP le email si leggono nello strumento email di LocalWP, Mailpit o MailHog secondo la versione).
-3. L'indirizzo `/area-bracelli/` potrebbe coincidere con una pagina esistente del sito reale: va verificato prima di qualsiasi uso fuori da LocalWP (è modificabile con il filtro `bracelli_club_portal_slug`).
+3. L'indirizzo breve viene verificato con una richiesta del server a sé stesso (al massimo una volta al giorno, all'apertura della pagina Turni e presenze in bacheca); se la verifica non è possibile si usa `?bracelli_portal=1`. L'indirizzo `/area-bracelli/` potrebbe inoltre coincidere con una pagina esistente del sito reale: va verificato prima di qualsiasi uso fuori da LocalWP (è modificabile con il filtro `bracelli_club_portal_slug`).
 4. Il logo è il file ufficiale `assets/images/logo-anniversario.png` se presente nel pacchetto (versione 0.1.5 e successive), altrimenti quello del sito (Aspetto → Personalizza → Logo), altrimenti la scritta "BRACELLI CLUB". Nessun file del logo è stato aggiunto al repository.
 5. L'elenco della segreteria mostra al massimo 500 turni e periodi di al massimo 93 giorni.
 6. Le regole P5–P7 sono scelte iniziali da confermare dopo la prova.
@@ -135,3 +135,14 @@ Verifiche sul pacchetto 0.1.6 (sito di prova con dati fittizi, Apache):
 | End-to-end dei turni (8 test) | OK |
 | End-to-end della Fase 1 (13 test) | 12 OK; 1 non superato perché il test cerca il selettore del tema della 0.1.0, che nella 0.1.5 è stato rifatto con pulsanti (comportamento atteso della 0.1.5, non un errore del prototipo) |
 | Aggiornamento reale 0.1.5 → 0.1.6 con "sostituisci" | Area turni "non ancora pronta" fino al primo accesso alla bacheca da amministratore; poi tabelle, ruolo e permessi creati; registro e preferenze della 0.1.5 conservati; `debug.log` vuoto |
+
+### Pacchetto 0.1.7 (correzioni dopo la prima prova dell'utente)
+
+Prova dell'utente su XAMPP (Apache 2.4.58 Win64, PHP 8.2.12, WordPress in `localhost/dashboard/wordpress/`): `/area-bracelli/` restituiva il "Not Found" di Apache, cioè la richiesta non arrivava a WordPress. Correzioni:
+
+- l'area usa `?bracelli_portal=1` finché l'indirizzo breve non è verificato; la pagina in bacheca spiega quale indirizzo usare e perché;
+- il modulo dei filtri della segreteria conserva sempre il parametro dell'area (difetto trovato dai test dopo la correzione precedente);
+- "Turni e presenze" in fondo al menu Bracelli in tutte le pagine (prima l'ordine cambiava tra dashboard React e pagine PHP);
+- area della dashboard rinominata "Corsi e presenze iscritti"; nel pacchetto 0.1.7 anche il testo di benvenuto (presente solo nel bundle della 0.1.5) cita il prototipo.
+
+Verifiche 0.1.7: sintassi PHP; aggiornamento 0.1.6 → 0.1.7; senza `.htaccess` il pulsante porta a `?bracelli_portal=1` e l'area funziona; con `.htaccess` porta a `/area-bracelli/`; 9 test end-to-end dei turni superati; `debug.log` vuoto. Nel branch: 65 test di integrazione e 22 end-to-end superati (due esecuzioni).

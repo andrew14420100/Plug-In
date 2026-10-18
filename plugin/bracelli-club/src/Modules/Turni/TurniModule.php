@@ -26,6 +26,11 @@ final class TurniModule implements ModuleInterface {
 	public const ADMIN_SLUG = 'bracelli-turni';
 
 	/**
+	 * Esito della verifica dell'indirizzo breve: [ ok, structure, slug, checked_at ].
+	 */
+	public const PRETTY_OPTION = 'bracelli_club_portal_pretty';
+
+	/**
 	 * Servizi.
 	 *
 	 * @var Plugin
@@ -50,6 +55,62 @@ final class TurniModule implements ModuleInterface {
 		 */
 		$slug = sanitize_title( (string) apply_filters( 'bracelli_club_portal_slug', 'area-bracelli' ) );
 		return '' === $slug ? 'area-bracelli' : $slug;
+	}
+
+	/**
+	 * Indica se l'indirizzo breve è stato verificato con le impostazioni correnti dei permalink.
+	 */
+	public static function pretty_url_verified(): bool {
+		$structure = (string) get_option( 'permalink_structure' );
+		$state     = get_option( self::PRETTY_OPTION );
+		return '' !== $structure
+			&& is_array( $state )
+			&& ! empty( $state['ok'] )
+			&& ( $state['structure'] ?? null ) === $structure
+			&& ( $state['slug'] ?? null ) === self::slug();
+	}
+
+	/**
+	 * Verifica (al massimo una volta al giorno, o quando cambiano permalink o percorso) che l'indirizzo breve
+	 * arrivi davvero a WordPress: su alcuni server (per esempio senza .htaccess) il server risponde 404 da solo.
+	 *
+	 * @param bool $force Ripete la verifica anche se recente.
+	 */
+	public static function check_pretty_url( bool $force = false ): bool {
+		$structure = (string) get_option( 'permalink_structure' );
+		$state     = get_option( self::PRETTY_OPTION );
+		if ( '' === $structure ) {
+			return false;
+		}
+		$fresh = is_array( $state )
+			&& ( $state['structure'] ?? null ) === $structure
+			&& ( $state['slug'] ?? null ) === self::slug()
+			&& (int) ( $state['checked_at'] ?? 0 ) > time() - DAY_IN_SECONDS;
+		if ( $fresh && ! $force ) {
+			return ! empty( $state['ok'] );
+		}
+		$response = wp_remote_get(
+			home_url( '/' . self::slug() . '/' ),
+			[
+				'timeout'     => 5,
+				'redirection' => 0,
+				'sslverify'   => false,
+			]
+		);
+		$ok       = ! is_wp_error( $response )
+			&& 200 === (int) wp_remote_retrieve_response_code( $response )
+			&& str_contains( (string) wp_remote_retrieve_body( $response ), '<body class="bcp">' );
+		update_option(
+			self::PRETTY_OPTION,
+			[
+				'ok'         => $ok,
+				'structure'  => $structure,
+				'slug'       => self::slug(),
+				'checked_at' => time(),
+			],
+			true
+		);
+		return $ok;
 	}
 
 	/**
@@ -177,9 +238,13 @@ final class TurniModule implements ModuleInterface {
 	public function render_admin(): void {
 		Layout::require_cap( Capabilities::TURNI_MANAGE );
 		Layout::open( __( 'Turni e presenze', 'bracelli-club' ), 'turni', __( 'Prototipo: turni dei dipendenti e registrazione di presenza o assenza.', 'bracelli-club' ) );
+		$pretty = self::check_pretty_url();
 		echo '<div class="bc-card"><p>' . esc_html__( 'La gestione dei turni si fa nell\'area turni, la stessa pagina che usano i dipendenti dal telefono o dal computer.', 'bracelli-club' ) . '</p>';
 		echo '<p><a class="bc-button bc-button--primary" href="' . esc_url( Portal::url() ) . '">' . esc_html__( 'Apri l\'area turni', 'bracelli-club' ) . '</a></p>';
 		echo '<p class="bc-muted">' . esc_html__( 'Indirizzo da comunicare ai dipendenti:', 'bracelli-club' ) . ' <code>' . esc_html( Portal::url() ) . '</code></p>';
+		if ( ! $pretty ) {
+			echo '<p class="bc-muted">' . esc_html__( 'L\'indirizzo breve /area-bracelli/ non è disponibile su questo server (permalink semplici oppure regole di riscrittura assenti, per esempio senza file .htaccess): per questo l\'area usa l\'indirizzo con ?bracelli_portal=1, che funziona sempre.', 'bracelli-club' ) . '</p>';
+		}
 		echo '<p class="bc-muted">' . esc_html__( 'Gli account dei dipendenti si creano da Utenti → Aggiungi nuovo utente, con il ruolo "Dipendente Bracelli".', 'bracelli-club' ) . '</p></div>';
 		Layout::close();
 	}

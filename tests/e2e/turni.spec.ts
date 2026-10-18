@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { USERS, collectErrors, shot } from './helpers';
+import { USERS, collectErrors, login, shot } from './helpers';
 
 /**
  * Prototipo Turni e presenze: area riservata frontend /area-bracelli/ (dati fittizi del sito E2E).
@@ -156,9 +156,9 @@ test.describe.serial( 'Turni e presenze', () => {
 
 		// La bacheca WordPress non è accessibile al dipendente.
 		await page.goto( '/wp-admin/' );
-		await expect( page ).toHaveURL( /area-bracelli/ );
+		await expect( page ).toHaveURL( /area-bracelli|bracelli_portal=1/ );
 		await page.goto( '/wp-admin/profile.php' );
-		await expect( page ).toHaveURL( /area-bracelli/ );
+		await expect( page ).toHaveURL( /area-bracelli|bracelli_portal=1/ );
 		// Nessuna barra di amministrazione sul sito.
 		await page.goto( '/' );
 		await expect( page.locator( '#wpadminbar' ) ).toHaveCount( 0 );
@@ -232,6 +232,18 @@ test.describe.serial( 'Turni e presenze', () => {
 		}
 		const users = await page.goto( '/wp-admin/users.php' );
 		expect( users?.status() ).toBe( 403 );
+	} );
+
+	test( "l'amministratore trova l'indirizzo corretto dell'area turni", async ( {
+		page,
+	} ) => {
+		await login( page, 'admin' );
+		await page.goto( '/wp-admin/admin.php?page=bracelli-turni' );
+		// Su questo server (Apache con .htaccess) l'indirizzo breve funziona e viene verificato.
+		const button = page.getByRole( 'link', { name: "Apri l'area turni" } );
+		await expect( button ).toHaveAttribute( 'href', /\/area-bracelli\/$/ );
+		await button.click();
+		await expect( page.locator( 'h1' ) ).toHaveText( 'Turni e presenze' );
 	} );
 
 	test( 'un abbonato senza permessi non vede nulla', async ( { page } ) => {

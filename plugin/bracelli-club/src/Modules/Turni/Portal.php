@@ -60,14 +60,15 @@ final class Portal {
 	}
 
 	/**
-	 * Indirizzo dell'area (con permalink semplici usa il parametro di query).
+	 * Indirizzo dell'area. L'indirizzo breve (/area-bracelli/) si usa solo dopo aver verificato che il server
+	 * lo inoltri a WordPress; altrimenti si usa il parametro di query, che funziona con qualsiasi server.
 	 *
 	 * @param array<string, string|int> $args Parametri aggiuntivi.
 	 */
 	public static function url( array $args = [] ): string {
-		$base = '' === (string) get_option( 'permalink_structure' )
-			? add_query_arg( self::QUERY_VAR, '1', home_url( '/' ) )
-			: home_url( '/' . TurniModule::slug() . '/' );
+		$base = TurniModule::pretty_url_verified()
+			? home_url( '/' . TurniModule::slug() . '/' )
+			: add_query_arg( self::QUERY_VAR, '1', home_url( '/' ) );
 		return [] === $args ? $base : add_query_arg( array_map( 'rawurlencode', array_map( 'strval', $args ) ), $base );
 	}
 
@@ -488,9 +489,8 @@ final class Portal {
 		$sum        = ShiftRepository::summarize( $rows );
 		?>
 <form class="bcp-card bcp-filters" method="get" action="<?php echo esc_url( self::url() ); ?>">
-		<?php if ( '' === (string) get_option( 'permalink_structure' ) ) : ?>
+		<?php // Un modulo GET sostituisce la query dell'indirizzo: il parametro dell'area viaggia sempre come campo. ?>
 	<input type="hidden" name="<?php echo esc_attr( self::QUERY_VAR ); ?>" value="1">
-		<?php endif; ?>
 	<input type="hidden" name="vista" value="turni">
 	<div class="bcp-field"><label for="bcp-dal"><?php esc_html_e( 'Dal', 'bracelli-club' ); ?></label><input id="bcp-dal" type="date" name="dal" value="<?php echo esc_attr( $from ); ?>"></div>
 	<div class="bcp-field"><label for="bcp-al"><?php esc_html_e( 'Al', 'bracelli-club' ); ?></label><input id="bcp-al" type="date" name="al" value="<?php echo esc_attr( $to ); ?>"></div>
