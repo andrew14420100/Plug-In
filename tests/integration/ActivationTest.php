@@ -14,19 +14,27 @@ final class ActivationTest extends TestCase {
 
 	public function test_tables_roles_and_capabilities_are_installed(): void {
 		global $wpdb;
-		foreach ( [ 'bc_migrations', 'bc_audit_events' ] as $table ) {
+		foreach ( [ 'bc_migrations', 'bc_audit_events', 'bc_turni_shifts', 'bc_turni_attendance' ] as $table ) {
 			$this->assertSame( $wpdb->prefix . $table, $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->prefix . $table ) ) );
 		}
-		foreach ( Roles::slugs() as $slug ) {
+		foreach ( Roles::definitions() as $slug => $definition ) {
 			$role = get_role( $slug );
 			$this->assertNotNull( $role, $slug );
 			$this->assertTrue( $role->has_cap( 'read' ) );
-			$this->assertTrue( $role->has_cap( Capabilities::DASHBOARD_VIEW ) );
+			foreach ( $definition['caps'] as $cap ) {
+				$this->assertTrue( $role->has_cap( $cap ), $slug . ' ' . $cap );
+			}
 			$this->assertFalse( $role->has_cap( Capabilities::MODULES_MANAGE ) );
+			$this->assertFalse( $role->has_cap( Capabilities::SETTINGS_MANAGE ) );
+			$this->assertFalse( $role->has_cap( Capabilities::PERMISSIONS_MANAGE ) );
 		}
+		$this->assertTrue( get_role( Roles::SEGRETERIA )->has_cap( Capabilities::TURNI_MANAGE ) );
+		$this->assertFalse( get_role( Roles::SEGRETERIA )->has_cap( Capabilities::TURNI_SELF ) );
+		$this->assertFalse( get_role( Roles::DIPENDENTE )->has_cap( Capabilities::DASHBOARD_VIEW ) );
+		$this->assertFalse( get_role( Roles::DIPENDENTE )->has_cap( Capabilities::TURNI_MANAGE ) );
 		$admin = get_role( 'administrator' );
 		foreach ( Capabilities::names() as $cap ) {
-			$this->assertTrue( $admin->has_cap( $cap ), $cap );
+			$this->assertSame( ! in_array( $cap, Capabilities::NOT_FOR_ADMIN, true ), $admin->has_cap( $cap ), $cap );
 		}
 	}
 
@@ -36,6 +44,8 @@ final class ActivationTest extends TestCase {
 		$applied = $this->plugin->migrator->applied();
 		$this->assertSame( 'done', $applied['2026_10_0001_create_audit_events']['status'] );
 		$this->assertSame( 'done', $applied['2026_10_0002_install_roles']['status'] );
+		$this->assertSame( 'done', $applied['2026_10_0003_create_shift_tables']['status'] );
+		$this->assertSame( 'done', $applied['2026_10_0004_grant_shift_capabilities']['status'] );
 
 		$result = $this->plugin->migrator->run();
 		$this->assertSame( 'nothing', $result['status'] );

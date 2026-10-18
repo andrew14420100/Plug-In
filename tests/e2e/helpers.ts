@@ -6,12 +6,24 @@ export const USERS = {
 	admin: { user: 'admin', pass: 'e2e-admin-pass' },
 	staff: { user: 'segreteria', pass: 'e2e-staff-pass' },
 	subscriber: { user: 'abbonato', pass: 'e2e-sub-pass' },
+	employee1: { user: 'dipendente1', pass: 'e2e-dip1-pass' },
+	employee2: { user: 'dipendente2', pass: 'e2e-dip2-pass' },
 };
 
 export async function login( page: Page, who: keyof typeof USERS ) {
-	await page.goto( '/wp-login.php' );
-	await page.fill( '#user_login', USERS[ who ].user );
-	await page.fill( '#user_pass', USERS[ who ].pass );
+	await page.goto( '/wp-login.php', { waitUntil: 'load' } );
+	// La pagina di login sposta il focus con un timer: si ricompila finché i valori non sono quelli attesi.
+	for ( let attempt = 0; attempt < 3; attempt++ ) {
+		await page.fill( '#user_login', USERS[ who ].user );
+		await page.fill( '#user_pass', USERS[ who ].pass );
+		if (
+			( await page.inputValue( '#user_login' ) ) === USERS[ who ].user &&
+			( await page.inputValue( '#user_pass' ) ) === USERS[ who ].pass
+		) {
+			break;
+		}
+		await page.waitForTimeout( 300 );
+	}
 	await page.click( '#wp-submit' );
 	await page.waitForURL( /\/wp-admin\//, { waitUntil: 'domcontentloaded' } );
 }

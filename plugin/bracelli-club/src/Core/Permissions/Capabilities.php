@@ -12,8 +12,8 @@ namespace Bracelli\Club\Core\Permissions;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Capability atomiche (ADR-001 §6.2). In Fase 1 esistono solo quelle del nucleo:
- * i moduli successivi aggiungeranno le proprie con una nuova migrazione.
+ * Capability atomiche (ADR-001 §6.2): quelle del nucleo e quelle del modulo Turni e presenze (prototipo).
+ * I moduli assegnano le proprie capability ai ruoli con una migrazione dedicata.
  */
 final class Capabilities {
 
@@ -24,6 +24,14 @@ final class Capabilities {
 	public const PERMISSIONS_MANAGE   = 'bracelli_permissions_manage';
 	public const AUDIT_VIEW           = 'bracelli_audit_view';
 	public const DIAGNOSTICS_RUN      = 'bracelli_diagnostics_run';
+	public const TURNI_MANAGE         = 'bracelli_turni_manage';
+	public const TURNI_SELF           = 'bracelli_turni_self';
+
+	/**
+	 * Capability che NON vengono date automaticamente all'amministratore: non sono privilegi,
+	 * ma indicano che l'account è un dipendente a cui si assegnano turni.
+	 */
+	public const NOT_FOR_ADMIN = [ self::TURNI_SELF ];
 
 	/**
 	 * Definizioni: capability => [ label, description, grantable, sensitive ].
@@ -76,6 +84,18 @@ final class Capabilities {
 				'grantable'   => true,
 				'sensitive'   => false,
 			],
+			self::TURNI_MANAGE         => [
+				'label'       => __( 'Gestione turni', 'bracelli-club' ),
+				'description' => __( 'Crea, modifica e annulla i turni dei dipendenti; consulta presenze e assenze di tutti.', 'bracelli-club' ),
+				'grantable'   => true,
+				'sensitive'   => true,
+			],
+			self::TURNI_SELF           => [
+				'label'       => __( 'Dipendente con turni', 'bracelli-club' ),
+				'description' => __( 'Può ricevere turni, vede solo i propri e registra la propria presenza o assenza.', 'bracelli-club' ),
+				'grantable'   => true,
+				'sensitive'   => false,
+			],
 		];
 	}
 
@@ -100,6 +120,8 @@ final class Capabilities {
 			self::PERMISSIONS_MANAGE   => false,
 			self::AUDIT_VIEW           => true,
 			self::DIAGNOSTICS_RUN      => true,
+			self::TURNI_MANAGE         => true,
+			self::TURNI_SELF           => true,
 		];
 	}
 

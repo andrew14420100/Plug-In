@@ -1,6 +1,6 @@
 # Bracelli Club Plug-In
 
-**Stato:** Fase 0 approvata. **Fase 1 (nucleo e dashboard) implementata in `plugin/bracelli-club`, versione 0.1.0, in attesa di collaudo e approvazione.** Nessuna release pubblicata.  
+**Stato:** Fase 0 approvata. **Fase 1 (nucleo e dashboard) implementata in `plugin/bracelli-club`, versione 0.1.0, in attesa di collaudo e approvazione.** **Prototipo "Turni e presenze" (plugin 0.2.0, branch `prototype/presenze-locale-v0.1.0`) da provare solo in LocalWP.** Nessuna release pubblicata.  
 **Repository ufficiale:** https://github.com/andrew14420100/Plug-In  
 **Destinazione:** https://centrosportivobracelliclub.it/ (NON intervenire in produzione durante lo sviluppo).  
 **Strumenti:** Claude Code, WordPress, PHP, React/TypeScript, LocalWP (Windows), GitHub Actions.  
@@ -27,6 +27,7 @@ Un unico plugin WordPress modulare per centralizzare le funzioni del sito e del 
 | [docs/FASE-0-REPORT.md](docs/FASE-0-REPORT.md) | Fase 0: verifiche eseguite/non eseguite e richieste di approvazione |
 | [docs/FASE-1-REPORT.md](docs/FASE-1-REPORT.md) | Fase 1: moduli implementati, test eseguiti, benchmark, rischi |
 | [docs/FASE-1-COLLAUDO-LOCALWP.md](docs/FASE-1-COLLAUDO-LOCALWP.md) | Fase 1: checklist di collaudo manuale in LocalWP |
+| [docs/PROTOTIPO-TURNI-PRESENZE.md](docs/PROTOTIPO-TURNI-PRESENZE.md) | Prototipo Turni e presenze: decisioni, installazione in LocalWP, prova dei ruoli, test, limiti |
 | [CHANGELOG.md](CHANGELOG.md) | Registro delle modifiche |
 
 ## Principi non negoziabili

@@ -92,8 +92,12 @@ final class PermissionsModule implements ModuleInterface {
 			}
 			echo '</span><br><span class="bc-muted">' . esc_html( $def['description'] ) . '</span><br><code>' . esc_html( $cap ) . '</code></th>';
 			echo '<td class="bc-center">';
-			Icons::render( 'check' );
-			echo '<span class="screen-reader-text">' . esc_html__( 'Sempre concessa', 'bracelli-club' ) . '</span></td>';
+			if ( in_array( $cap, Capabilities::NOT_FOR_ADMIN, true ) ) {
+				echo '<span class="bc-muted" title="' . esc_attr__( 'Non applicabile: indica un dipendente, non un privilegio', 'bracelli-club' ) . '">—</span></td>';
+			} else {
+				Icons::render( 'check' );
+				echo '<span class="screen-reader-text">' . esc_html__( 'Sempre concessa', 'bracelli-club' ) . '</span></td>';
+			}
 			foreach ( array_keys( $roles ) as $slug ) {
 				$id = 'bc-cap-' . $slug . '-' . $cap;
 				echo '<td class="bc-center">';

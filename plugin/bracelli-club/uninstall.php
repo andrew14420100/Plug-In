@@ -20,6 +20,8 @@ global $wpdb;
 // phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- rimozione esplicita richiesta dall'amministratore.
 $wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}bc_audit_events`" );
 $wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}bc_migrations`" );
+$wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}bc_turni_shifts`" );
+$wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}bc_turni_attendance`" );
 // phpcs:enable
 
 foreach ( array( 'bracelli_club_settings', 'bracelli_club_modules', 'bracelli_club_schema', 'bracelli_club_last_migration', 'bracelli_club_errors', 'bracelli_club_installed_at' ) as $bracelli_club_option ) {
@@ -28,7 +30,7 @@ foreach ( array( 'bracelli_club_settings', 'bracelli_club_modules', 'bracelli_cl
 
 delete_metadata( 'user', 0, 'bracelli_club_prefs', '', true );
 
-foreach ( array( 'bracelli_segreteria', 'bracelli_istruttore', 'bracelli_gestore_corsi' ) as $bracelli_club_role ) {
+foreach ( array( 'bracelli_segreteria', 'bracelli_istruttore', 'bracelli_gestore_corsi', 'bracelli_dipendente' ) as $bracelli_club_role ) {
 	remove_role( $bracelli_club_role );
 }
 $bracelli_club_admin = get_role( 'administrator' );

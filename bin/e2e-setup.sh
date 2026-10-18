@@ -43,6 +43,24 @@ $WP core install --url="http://127.0.0.1:$E2E_PORT" --title="Bracelli E2E" --adm
 $WP plugin install "$E2E_ZIP" --activate --force
 $WP user create segreteria segreteria@example.org --role=bracelli_segreteria --user_pass=e2e-staff-pass --display_name="Segreteria Prova" --quiet
 $WP user create abbonato abbonato@example.org --role=subscriber --user_pass=e2e-sub-pass --quiet
+# Prototipo Turni e presenze: due dipendenti fittizi, fuso orario italiano e permalink "parlanti" come su un sito reale.
+$WP user create dipendente1 dipendente1@example.org --role=bracelli_dipendente --user_pass=e2e-dip1-pass --display_name="Dipendente Prova Uno" --quiet
+$WP user create dipendente2 dipendente2@example.org --role=bracelli_dipendente --user_pass=e2e-dip2-pass --display_name="Dipendente Prova Due" --quiet
+$WP option update timezone_string Europe/Rome --quiet
+$WP rewrite structure '/%postname%/' --quiet
+# WP-CLI non sa se Apache ha mod_rewrite: il file .htaccess standard di WordPress si scrive qui.
+cat > "$E2E_DIR/.htaccess" <<'HTACCESS'
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+HTACCESS
 rm -f "$E2E_DIR/wp-content/debug.log"
 
 if [ "$E2E_SERVER" = "apache" ]; then

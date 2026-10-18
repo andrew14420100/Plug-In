@@ -25,6 +25,8 @@ final class Registry {
 		return [
 			new M2026100001CreateAuditEvents(),
 			new M2026100002InstallRoles(),
+			new M2026100003CreateShiftTables(),
+			new M2026100004GrantShiftCapabilities(),
 		];
 	}
 }
