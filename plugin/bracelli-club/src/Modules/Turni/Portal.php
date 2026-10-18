@@ -22,6 +22,7 @@ final class Portal {
 
 	public const QUERY_VAR = 'bracelli_portal';
 	public const STYLE     = 'bracelli-club-portal';
+	public const LOGO_FILE = 'assets/images/logo-anniversario.png';
 
 	/**
 	 * Errori di validazione da mostrare nel modulo ripresentato.
@@ -346,12 +347,16 @@ final class Portal {
 	 * Logo: quello impostato nel sito (Aspetto → Personalizza → Logo), sostituibile con un filtro.
 	 */
 	private function logo_url(): string {
-		$id  = (int) get_theme_mod( 'custom_logo' );
-		$url = $id > 0 ? (string) wp_get_attachment_image_url( $id, 'medium' ) : '';
+		// Logo ufficiale incluso nel pacchetto del plugin, se presente; altrimenti il logo del sito.
+		$url = is_readable( BRACELLI_CLUB_DIR . self::LOGO_FILE ) ? BRACELLI_CLUB_URL . self::LOGO_FILE : '';
+		if ( '' === $url ) {
+			$id  = (int) get_theme_mod( 'custom_logo' );
+			$url = $id > 0 ? (string) wp_get_attachment_image_url( $id, 'medium' ) : '';
+		}
 		/**
 		 * Indirizzo del logo mostrato nell'area turni ('' = scritta "Bracelli Club").
 		 *
-		 * @param string $url Logo del sito, se impostato.
+		 * @param string $url Logo del plugin o del sito, se presente.
 		 */
 		return (string) apply_filters( 'bracelli_club_portal_logo_url', $url );
 	}

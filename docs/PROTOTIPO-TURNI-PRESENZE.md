@@ -112,7 +112,26 @@ I test di sicurezza coprono: dipendente che prova a creare, modificare o annulla
 1. Nessuna protezione propria contro i tentativi ripetuti di accesso: il modulo di accesso usa il login di WordPress, quindi valgono le protezioni eventualmente già installate (richiesta F6, da realizzare in una fase successiva).
 2. Il dipendente non ha una pagina per cambiare la password: usa "Password dimenticata?" (serve l'invio di email funzionante; in LocalWP le email si leggono nello strumento email di LocalWP, Mailpit o MailHog secondo la versione).
 3. L'indirizzo `/area-bracelli/` potrebbe coincidere con una pagina esistente del sito reale: va verificato prima di qualsiasi uso fuori da LocalWP (è modificabile con il filtro `bracelli_club_portal_slug`).
-4. Il logo è quello impostato nel sito (Aspetto → Personalizza → Logo); se assente compare la scritta "BRACELLI CLUB". Nessun file del logo è stato aggiunto al repository.
+4. Il logo è il file ufficiale `assets/images/logo-anniversario.png` se presente nel pacchetto (versione 0.1.5 e successive), altrimenti quello del sito (Aspetto → Personalizza → Logo), altrimenti la scritta "BRACELLI CLUB". Nessun file del logo è stato aggiunto al repository.
 5. L'elenco della segreteria mostra al massimo 500 turni e periodi di al massimo 93 giorni.
 6. Le regole P5–P7 sono scelte iniziali da confermare dopo la prova.
 7. Il ruolo "Dipendente Bracelli" è creato automaticamente (P3), in deroga temporanea a F2.
+
+## 9. Pacchetto 0.1.6 per la prova (basato sulla 0.1.5 dell'utente)
+
+Su richiesta dell'utente, il prototipo da provare è consegnato anche come **`bracelli-club-0.1.6.zip`**, costruito sopra lo ZIP 0.1.5 dell'utente (SHA-256 `9eee4ed2…`), che resta la base grafica di riferimento:
+
+- tutti i file della 0.1.5 sono invariati, tranne: versione in `bracelli-club.php`; `readme.txt`, `INIZIA-QUI.txt` e `LEGGIMI-AGGIORNAMENTO.txt` (aggiunte le istruzioni dei turni); una riga di spiegazione del modulo turni in `ModulesPage.php`;
+- si aggiungono gli stessi file del modulo turni di questo branch (identici nella 0.1.0 e nella 0.1.5 quelli toccati: capability, ruoli, migrazioni, navigazione, permessi, disinstallazione);
+- l'area turni usa il logo ufficiale già presente nella 0.1.5 (`assets/images/logo-anniversario.png`).
+
+Il pacchetto 0.1.6 **non è nel repository**: integrare la 0.1.5 nei sorgenti richiede di pubblicare gli asset del logo (serve la conferma dell'utente, decisione A2) e di riallineare il bundle della dashboard modificato a mano con i sorgenti React (A1).
+
+Verifiche sul pacchetto 0.1.6 (sito di prova con dati fittizi, Apache):
+
+| Verifica | Esito |
+| --- | --- |
+| Sintassi PHP di tutti i file | OK |
+| End-to-end dei turni (8 test) | OK |
+| End-to-end della Fase 1 (13 test) | 12 OK; 1 non superato perché il test cerca il selettore del tema della 0.1.0, che nella 0.1.5 è stato rifatto con pulsanti (comportamento atteso della 0.1.5, non un errore del prototipo) |
+| Aggiornamento reale 0.1.5 → 0.1.6 con "sostituisci" | Area turni "non ancora pronta" fino al primo accesso alla bacheca da amministratore; poi tabelle, ruolo e permessi creati; registro e preferenze della 0.1.5 conservati; `debug.log` vuoto |
