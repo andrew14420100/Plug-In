@@ -53,7 +53,7 @@ test.describe.serial( 'Archivio soci', () => {
 		await page.fill( '#bcp-soci-search', 'Nicolò' );
 		await page.click( 'button:has-text("Cerca")' );
 		const row = page.locator( 'tbody tr', {
-			hasText: 'Nicolò E2E Famiglia',
+			hasText: 'E2E Famiglia Nicolò',
 		} );
 		await expect( row ).toBeVisible();
 		await row.locator( 'a:has-text("Apri scheda")' ).click();
@@ -92,7 +92,7 @@ test.describe.serial( 'Archivio soci', () => {
 		const csv = [
 			'Nome;Cognome;Email;Telefono;Data di nascita;Indirizzo;Comune;CAP;Stato;Note',
 			'Marta;CSV E2E;import-csv-e2e@example.org;3331230000;2008-12-05;Via CSV 1;Roma;00100;Attivo;Record di test',
-		].join( '\\n' );
+		].join( '\n' );
 		await page.setInputFiles( '#bcp-soci-csv', {
 			name: 'importa-soci.csv',
 			mimeType: 'text/csv',
@@ -118,7 +118,7 @@ test.describe.serial( 'Archivio soci', () => {
 		await page.fill( '#bcp-soci-search', 'Marta' );
 		await page.click( 'button:has-text("Cerca")' );
 		await expect(
-			page.locator( 'tbody tr', { hasText: 'Marta CSV E2E' } )
+			page.locator( 'tbody tr', { hasText: 'CSV E2E Marta' } )
 		).toBeVisible();
 
 		const downloadPromise = page.waitForEvent( 'download' );
