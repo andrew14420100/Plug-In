@@ -38,9 +38,9 @@ final class MemberRepository {
 		$where    = [ '1=1' ];
 		$params   = [];
 		if ( '' !== $search ) {
-			$like     = '%' . $this->db->esc_like( $search ) . '%';
-			$where[]  = '(first_name LIKE %s OR last_name LIKE %s OR email LIKE %s OR phone LIKE %s)';
-			$params   = array_merge( $params, [ $like, $like, $like, $like ] );
+			$like    = '%' . $this->db->esc_like( $search ) . '%';
+			$where[] = '(first_name LIKE %s OR last_name LIKE %s OR email LIKE %s OR phone LIKE %s)';
+			$params  = array_merge( $params, [ $like, $like, $like, $like ] );
 		}
 		if ( in_array( $status, [ 'active', 'suspended', 'archived' ], true ) ) {
 			$where[]  = 'status = %s';
@@ -104,7 +104,11 @@ final class MemberRepository {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- tabella del plugin.
 		return false !== $this->db->update(
 			$this->table(),
-			[ 'status' => $status, 'updated_by' => $actor, 'updated_at' => gmdate( 'Y-m-d H:i:s' ) ],
+			[
+				'status'     => $status,
+				'updated_by' => $actor,
+				'updated_at' => gmdate( 'Y-m-d H:i:s' ),
+			],
 			[ 'id' => $id ]
 		);
 	}
@@ -128,7 +132,7 @@ final class MemberRepository {
 	 * @return array<string, mixed>
 	 */
 	private function cast( array $row ): array {
-		$row['id'] = (int) $row['id'];
+		$row['id']         = (int) $row['id'];
 		$row['created_by'] = isset( $row['created_by'] ) ? (int) $row['created_by'] : 0;
 		$row['updated_by'] = isset( $row['updated_by'] ) ? (int) $row['updated_by'] : 0;
 		return $row;
