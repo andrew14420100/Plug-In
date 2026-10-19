@@ -21,7 +21,7 @@ Restano fuori: timbrature di entrata e uscita, ritardi, giustificazioni, certifi
 | P3 | Nuovo ruolo **"Dipendente Bracelli"** creato dal plugin; la Segreteria riceve la capability "Gestione turni" | Serve per provare i due ruoli. È un'**eccezione dichiarata** alla regola F2 (nessun ruolo creato automaticamente): da rivedere nella fase dedicata ai permessi. Nessun ruolo viene assegnato ad account esistenti |
 | P4 | I turni **non si eliminano**: si annullano e restano nello storico | Requisito "annullare conservando lo storico"; nessuna cancellazione definitiva per la segreteria |
 | P5 | Un turno con presenza già registrata, o annullato, non si modifica più | Evita che la registrazione del dipendente si riferisca a un orario diverso da quello mostrato |
-| P6 | Il dipendente registra Presente/Assente **dal giorno del turno in poi** e può cambiare scelta **solo nel giorno del turno** | Regola semplice da verificare in prova; può essere cambiata dopo il feedback |
+| P6 | Il dipendente registra Presente/Assente **dal giorno del turno fino a 30 giorni dopo** (limite aggiunto nella 0.3.1) e può cambiare scelta **solo nel giorno del turno** | Regola semplice da verificare in prova; può essere cambiata dopo il feedback |
 | P7 | Turni a cavallo della mezzanotte non supportati; due turni dello stesso dipendente non possono sovrapporsi | Validazione minima dei dati |
 | P8 | Lo storico usa il registro attività del nucleo (`bc_audit_events`), senza tabella aggiuntiva | Una sola fonte dello storico, già protetta dai permessi |
 | P9 | Le presenze di questo prototipo sono **presenze del personale**, distinte dalle presenze degli iscritti ai corsi (Fase 4 della roadmap) | Richiesta F7: non confondere le due funzioni |

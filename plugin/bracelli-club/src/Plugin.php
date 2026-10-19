@@ -156,8 +156,7 @@ final class Plugin {
 		}
 		$this->booted = true;
 
-		add_action( 'init', [ $this, 'load_textdomain' ] );
-		add_action( 'admin_init', [ $this, 'maybe_migrate' ], 1 );
+		add_action( 'admin_init', [ $this, 'maybe_migrate_for_admin' ], 1 );
 
 		$this->modules->boot(
 			static function ( ModuleManifest $manifest ): ?ModuleInterface {
@@ -184,14 +183,18 @@ final class Plugin {
 	}
 
 	/**
-	 * Carica le traduzioni del plugin.
+	 * Esegue le migrazioni pendenti solo nell'area amministrativa (mai sul frontend).
 	 */
-	public function load_textdomain(): void {
-		load_plugin_textdomain( 'bracelli-club', false, dirname( plugin_basename( BRACELLI_CLUB_FILE ) ) . '/languages' );
+	public function maybe_migrate_for_admin(): void {
+		// admin_init scatta anche per admin-ajax.php e admin-post.php anonimi: solo un amministratore avvia le migrazioni.
+		if ( wp_doing_ajax() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		$this->maybe_migrate();
 	}
 
 	/**
-	 * Esegue le migrazioni pendenti solo nell'area amministrativa (mai sul frontend).
+	 * Esegue le migrazioni pendenti, se ce ne sono.
 	 */
 	public function maybe_migrate(): void {
 		if ( ! $this->migrator->needs_run() ) {

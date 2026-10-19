@@ -161,7 +161,7 @@ final class CourseService {
 		if ( ! $this->can_teach( $actor ) ) {
 			return null;
 		}
-		return $this->occurrences(
+		$lessons = $this->occurrences(
 			$this->repo->slots(
 				[
 					'status'     => 'active',
@@ -170,6 +170,15 @@ final class CourseService {
 			),
 			$from,
 			$to
+		);
+		// Le lezioni precedenti all'assegnazione erano di un collega o di un altro giorno: non sono dell'insegnante.
+		return array_values(
+			array_filter(
+				$lessons,
+				static fn( array $l ): bool => $l['attendance_teacher_id'] === $actor
+					|| null === $l['assigned_from']
+					|| $l['lesson_date'] >= $l['assigned_from']
+			)
 		);
 	}
 
@@ -267,6 +276,10 @@ final class CourseService {
 			return $this->fail( 'not_found' );
 		}
 		$record = $this->repo->find_attendance( $slot_id, $date );
+		// La registrazione fatta da un collega (prima di un cambio di insegnante) non si modifica.
+		if ( null !== $record && (int) $record['teacher_id'] !== $actor ) {
+			return $this->fail( 'attendance_locked' );
+		}
 		$reason = $this->attendance_block_reason( $slot, $date, null !== $record );
 		if ( '' !== $reason ) {
 			return $this->fail( $reason );
@@ -314,6 +327,9 @@ final class CourseService {
 		}
 		if ( $recorded && $date !== $today ) {
 			return 'attendance_locked';
+		}
+		if ( ! $recorded && null !== ( $slot['assigned_from'] ?? null ) && $date < (string) $slot['assigned_from'] ) {
+			return 'before_assignment';
 		}
 		return '';
 	}
@@ -465,11 +481,12 @@ final class CourseService {
 		$id = $this->repo->insert(
 			$this->repo->slots_table(),
 			$data + [
-				'course_id'  => $course_id,
-				'status'     => 'active',
-				'manual'     => 1,
-				'created_by' => $actor,
-				'created_at' => gmdate( 'Y-m-d H:i:s' ),
+				'course_id'     => $course_id,
+				'status'        => 'active',
+				'manual'        => 1,
+				'created_by'    => $actor,
+				'created_at'    => gmdate( 'Y-m-d H:i:s' ),
+				'assigned_from' => $this->today(),
 			]
 		);
 		if ( 0 === $id ) {
@@ -604,15 +621,16 @@ final class CourseService {
 	private function save_slot_change( int $actor, array $slot, array $after ): void {
 		$keys   = [ 'weekday', 'start_time', 'end_time', 'teacher_id', 'location' ];
 		$before = array_intersect_key( $slot, array_flip( $keys ) );
-		$this->repo->update(
-			$this->repo->slots_table(),
-			(int) $slot['id'],
-			$after + [
-				'manual'     => 1,
-				'updated_by' => $actor,
-				'updated_at' => gmdate( 'Y-m-d H:i:s' ),
-			]
-		);
+		$extra  = [
+			'manual'     => 1,
+			'updated_by' => $actor,
+			'updated_at' => gmdate( 'Y-m-d H:i:s' ),
+		];
+		// Nuovo insegnante o nuovo giorno: le lezioni passate non diventano registrabili.
+		if ( (int) $after['teacher_id'] !== (int) $slot['teacher_id'] || (int) $after['weekday'] !== (int) $slot['weekday'] ) {
+			$extra['assigned_from'] = $this->today();
+		}
+		$this->repo->update( $this->repo->slots_table(), (int) $slot['id'], $after + $extra );
 		$this->log(
 			'corsi.slot_updated',
 			(int) $slot['id'],

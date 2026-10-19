@@ -35,6 +35,9 @@ final class ShiftService {
 	public const PRESENT = 'present';
 	public const ABSENT  = 'absent';
 
+	/** Giorni nel passato entro cui il dipendente può ancora registrare un turno non registrato. */
+	public const PAST_DAYS = 30;
+
 	/**
 	 * Funzione che restituisce la data odierna del sito (Y-m-d).
 	 *
@@ -357,6 +360,9 @@ final class ShiftService {
 		}
 		if ( null !== $shift['attendance_status'] && (string) $shift['shift_date'] !== $today ) {
 			return 'attendance_locked';
+		}
+		if ( (string) $shift['shift_date'] < gmdate( 'Y-m-d', (int) strtotime( $today . ' -' . self::PAST_DAYS . ' days' ) ) ) {
+			return 'too_old';
 		}
 		return '';
 	}

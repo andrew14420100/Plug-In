@@ -109,6 +109,7 @@ final class CorsiSection implements SectionInterface {
 			'not_a_lesson'      => [ 'error', __( 'In quella data non è prevista questa lezione.', 'bracelli-club' ) ],
 			'too_early'         => [ 'error', __( 'Potrai registrare la presenza dal giorno della lezione.', 'bracelli-club' ) ],
 			'too_old'           => [ 'error', __( 'La lezione è troppo vecchia per essere registrata: avvisa la segreteria.', 'bracelli-club' ) ],
+			'before_assignment' => [ 'error', __( 'La lezione è precedente alla tua assegnazione a questo orario: avvisa la segreteria.', 'bracelli-club' ) ],
 			'attendance_locked' => [ 'error', __( 'La presenza si può cambiare solo nel giorno della lezione.', 'bracelli-club' ) ],
 		];
 	}
@@ -266,7 +267,9 @@ final class CorsiSection implements SectionInterface {
 	 * @param string               $today  Oggi.
 	 */
 	private function lesson_card( array $lesson, string $today ): void {
-		$reason   = $this->service->attendance_block_reason( $lesson, (string) $lesson['lesson_date'], null !== $lesson['attendance_status'] );
+		$reason   = $lesson['attendance_teacher_id'] > 0 && $lesson['attendance_teacher_id'] !== $lesson['teacher_id']
+			? 'attendance_locked'
+			: $this->service->attendance_block_reason( $lesson, (string) $lesson['lesson_date'], null !== $lesson['attendance_status'] );
 		$is_today = (string) $lesson['lesson_date'] === $today;
 		echo '<article class="bcp-card bcp-shift' . ( $is_today ? ' is-today' : '' ) . '">';
 		echo '<div class="bcp-shift__head"><p class="bcp-shift__date">' . ( $is_today ? '<span class="bcp-badge bcp-badge--today">' . esc_html__( 'Oggi', 'bracelli-club' ) . '</span> ' : '' ) . esc_html( $this->p->format_date( (string) $lesson['lesson_date'] ) ) . '</p>';
@@ -391,7 +394,9 @@ final class CorsiSection implements SectionInterface {
 			echo '<td data-label="' . esc_attr__( 'Data', 'bracelli-club' ) . '">' . esc_html( $this->p->format_date( (string) $lesson['lesson_date'] ) ) . '</td>';
 			echo '<td data-label="' . esc_attr__( 'Orario', 'bracelli-club' ) . '">' . esc_html( $this->slot_time( $lesson ) ) . '</td>';
 			echo '<td data-label="' . esc_attr__( 'Corso', 'bracelli-club' ) . '">' . esc_html( $this->course_label( $lesson ) ) . '</td>';
-			echo '<td data-label="' . esc_attr__( 'Insegnante', 'bracelli-club' ) . '">' . $this->teacher_cell( $lesson ) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup con escape.
+			// Lezione già registrata: conta chi l'ha registrata, anche se l'orario è passato a un altro insegnante.
+			$who = $lesson['attendance_teacher_id'] > 0 ? [ 'teacher_id' => $lesson['attendance_teacher_id'] ] + $lesson : $lesson;
+			echo '<td data-label="' . esc_attr__( 'Insegnante', 'bracelli-club' ) . '">' . $this->teacher_cell( $who ) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup con escape.
 			echo '<td data-label="' . esc_attr__( 'Presenza', 'bracelli-club' ) . '">' . $this->attendance_badge( $lesson ) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup con escape.
 			echo '</tr>';
 		}

@@ -4,6 +4,12 @@ Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it/1.1.0/); ver
 
 ## [Non rilasciato]
 
+### Audit WordPress.org (plugin 0.3.1, candidato locale, non rilasciato)
+- Sicurezza: l'insegnante non registra più lezioni precedenti alla propria assegnazione all'orario (nuova colonna `assigned_from`, migrazione `2026_10_0007`) né modifica la registrazione di un collega; il quadro della segreteria mostra chi ha registrato.
+- Sicurezza: il dipendente registra i turni solo fino a 30 giorni prima; solo un amministratore (`manage_options`) attiva «Elimina tutti i dati alla disinstallazione»; le migrazioni da `admin_init` partono solo per gli amministratori (non più da `admin-ajax.php`/`admin-post.php` anonimi).
+- `readme.txt` in inglese con sezioni Privacy e Source code; descrizione dell'header in inglese; rimosso `load_plugin_textdomain` (nessuna traduzione inclusa).
+- Test: 3 di integrazione nuovi e 2 aggiornati. Rapporto: `docs/AUDIT-WORDPRESS-ORG.md`.
+
 ### Aggiunto — Area riservata, corsi e presenze insegnanti (plugin 0.3.0, solo prove locali, non rilasciato)
 - Modulo `area`: portale frontend unico (accesso con nome utente o email tramite WordPress, nessuna registrazione pubblica), indirizzo canonico `?bracelli_portal=1` con indirizzo breve verificato, shortcode `[bracelli_area_riservata]` per il pulsante nell'header, segreteria/insegnanti/dipendenti/soci tenuti fuori dalla bacheca WordPress.
 - Modulo `corsi`: corsi, orari settimanali e presenze degli insegnanti (tabelle `bc_corsi_*`, migrazioni `2026_10_0005` e `2026_10_0006`); importazione CSV ripetibile con anteprima, conflitti con le modifiche manuali e rapporto (bacheca e `wp bracelli-corsi import`); viste Calendario corsi, Le mie lezioni (Presente/Assente), Presenze insegnanti e Orari dei corsi con storico e annullamento senza cancellazione.

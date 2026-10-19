@@ -1,62 +1,70 @@
 === Bracelli Club ===
 Contributors: bracelliclub
-Tags: gestionale, centro sportivo, dashboard
+Tags: sports club, members area, attendance, courses, staff
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 
-Gestionale modulare del centro sportivo Bracelli Club: nucleo della Fase 1, area riservata, corsi e presenze degli insegnanti, turni del personale (solo per prove in locale).
+Management tools for the Bracelli Club sports centre: modular admin dashboard, private members area, course timetable and staff attendance.
 
 == Description ==
 
-Plugin ad uso esclusivo del sito Bracelli Club (non destinato alla directory WordPress.org).
+Bracelli Club is the management plugin of the Bracelli Club sports centre. The user interface is in Italian.
 
-Novità della versione 0.3.0 (solo prove in locale):
+Features available in this version:
 
-* Area riservata unica con accesso tramite nome utente o email; pulsante con lo shortcode [bracelli_area_riservata].
-* Corsi e orari importati da file CSV con anteprima; calendario dei corsi, lezioni dell'insegnante con Presente/Assente, quadro delle presenze e gestione degli orari per la segreteria.
-* Ruolo "Socio Bracelli"; l'Istruttore Bracelli è l'insegnante.
+* **Modular core**: module catalogue with dependencies, cascading deactivation only after confirmation, versioned database migrations, safe mode (`define( 'BRACELLI_CLUB_SAFE_MODE', true );`) and a recovery page that works without JavaScript.
+* **Admin dashboard** (React, built with the WordPress packages): light/dark themes, colour palettes, per-user widgets and favourites, optional hiding of the WordPress menu with a button that always stays visible.
+* **Roles and permissions**: club roles (front office, instructor, course manager, employee, member) with atomic capabilities checked on the server for every page, action and REST request.
+* **Activity log** with masked personal data, filters and REST API.
+* **Diagnostics** and settings export/import with a preview of the differences.
+* **Private area** on the front end (shortcode `[bracelli_area_riservata]` for the header button): login with username or email, no public registration; front-office staff, instructors, employees and members never see the WordPress dashboard.
+* **Courses**: courses and weekly timetable imported from a CSV file with preview, conflict detection and report (admin page or `wp bracelli-corsi import`); members see the timetable, instructors mark each of their lessons as present or absent, the front office assigns instructors and changes or cancels timetable entries with full history (nothing is deleted).
+* **Staff shifts** (prototype): the front office plans employee shifts, each employee sees only their own shifts and records attendance.
+* WP-CLI commands: `wp bracelli status|migrate|module|diagnose`.
 
-Prototipo della versione 0.2.0 (solo per prove in LocalWP, non per il sito pubblico):
+Not included yet: membership records, membership cards, bookings, payments, documents and synchronisation with external management software.
 
-* Modulo "Turni e presenze": area riservata frontend all'indirizzo /area-bracelli/ (o ?bracelli_portal=1 con permalink semplici).
-* La segreteria crea, modifica e annulla i turni dei dipendenti e consulta presenze e assenze; i turni non si eliminano.
-* Il dipendente vede solo i propri turni e registra Presente o Assente; non entra nella bacheca WordPress.
-* Nuovo ruolo "Dipendente Bracelli"; capability "Gestione turni" (segreteria) e "Dipendente con turni".
+= Privacy =
 
-Funzioni della Fase 1 (dalla versione 0.1.0):
+The plugin does not contact external services and does not collect usage data. It stores in the site database: the activity log (personal data masked), course timetables, instructor attendance and staff shifts, linked to WordPress user accounts. The only outgoing request is a check, from the admin page "Area riservata", that the site itself answers on the short private-area address.
 
-* Nucleo modulare con catalogo moduli, dipendenze, attivazione e disattivazione a cascata solo su conferma.
-* Dashboard Bracelli con contesto amministratore e dipendente, temi chiaro/scuro, tavolozze, widget riordinabili e preferiti per utente.
-* Ruoli Bracelli (segreteria, istruttore, gestore corsi) e matrice dei permessi verificata lato server.
-* Registro attività con dati personali mascherati.
-* Diagnostica essenziale e approfondita su richiesta.
-* Pagina di ripristino senza JavaScript e modalità sicura (`define( 'BRACELLI_CLUB_SAFE_MODE', true );`).
-* Impostazioni con esportazione e importazione con anteprima delle differenze.
-* Comandi WP-CLI: `wp bracelli status|migrate|module|diagnose`.
+= Source code =
 
-Non include ancora: archivio soci, tessere, corsi, prenotazioni, incassi, documenti, sincronizzazione con Club Manager, aggiornamenti automatici. Le aree corrispondenti sono indicate come "non ancora disponibili".
-
-I requisiti minimi PHP 8.2 e WordPress 6.9 sono provvisori fino alla verifica dell'hosting.
-
-Licenza: non ancora definita dal proprietario del progetto.
+The JavaScript and CSS in `assets/dist` are compiled from the sources published at https://github.com/andrew14420100/Plug-In (folder `frontend`). Build with Node.js 22: `npm ci && npm run build`.
 
 == Installation ==
 
-1. Fai un backup del sito.
-2. Carica `bracelli-club-0.3.0.zip` da Plugin → Aggiungi nuovo → Carica plugin.
-3. Attiva il plugin. Le tabelle `{prefisso}bc_migrations`, `{prefisso}bc_audit_events`, `{prefisso}bc_turni_shifts` e `{prefisso}bc_turni_attendance` vengono create automaticamente.
+1. Back up the site.
+2. Upload the ZIP from Plugins → Add New Plugin → Upload Plugin and activate it.
+3. Open the Bracelli Club dashboard once as an administrator: the database tables are created by the migrations.
+4. Optional: add the `[bracelli_area_riservata]` shortcode to the site header (for example with the Elementor Shortcode widget).
 
-La disattivazione e la disinstallazione NON eliminano i dati, salvo l'opzione esplicita "Elimina tutti i dati alla disinstallazione".
+Deactivating or uninstalling the plugin keeps all data, unless the option "Elimina tutti i dati alla disinstallazione" is enabled in the settings.
+
+== Frequently Asked Questions ==
+
+= Does it work with WordPress Playground? =
+
+Yes for evaluation. Playground uses SQLite instead of MySQL/MariaDB, so it is not representative of performance on a real host.
+
+= Which database is supported? =
+
+MySQL 8.0 and MariaDB 10.11 are tested.
 
 == Changelog ==
 
+= 0.3.1 =
+* Security: an instructor can no longer record lessons from before their assignment, nor overwrite a colleague's record; staff can record shifts up to 30 days back; only administrators can enable data deletion on uninstall; only administrators trigger database migrations from admin requests.
+* Readme in English; translations are loaded by WordPress.
+* Migrations also run on WordPress Playground (SQLite has no GET_LOCK).
+
 = 0.3.0 =
-* Area riservata, corsi e presenze degli insegnanti (prova locale, non rilasciato).
+* Private area, courses and instructor attendance.
 
 = 0.2.0 =
-* Prototipo "Turni e presenze" per le prove in locale (non rilasciato).
+* Staff shifts and attendance prototype.
 
 = 0.1.0 =
-* Prima versione: Fase 1 (nucleo e dashboard).
+* First version: modular core and dashboard.

@@ -85,4 +85,20 @@ final class ActivationTest extends TestCase {
 		$this->plugin->maybe_migrate();
 		$this->assertSame( $this->plugin->migrator->fingerprint(), get_option( Migrator::SCHEMA_OPTION ) );
 	}
+
+	public function test_admin_requests_migrate_only_for_administrators(): void {
+		$this->assertSame( 1, has_action( 'admin_init', [ $this->plugin, 'maybe_migrate_for_admin' ] ) );
+		update_option( Migrator::SCHEMA_OPTION, 'diverso' );
+		wp_set_current_user( 0 );
+		$this->plugin->maybe_migrate_for_admin();
+		$this->assertSame( 'diverso', get_option( Migrator::SCHEMA_OPTION ), 'admin-post.php anonimo non avvia le migrazioni.' );
+
+		wp_set_current_user( self::factory()->user->create( [ 'role' => Roles::SEGRETERIA ] ) );
+		$this->plugin->maybe_migrate_for_admin();
+		$this->assertSame( 'diverso', get_option( Migrator::SCHEMA_OPTION ) );
+
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
+		$this->plugin->maybe_migrate_for_admin();
+		$this->assertSame( $this->plugin->migrator->fingerprint(), get_option( Migrator::SCHEMA_OPTION ) );
+	}
 }

@@ -182,11 +182,48 @@ final class CorsiTest extends TestCase {
 		$this->assign( $sunday, $this->anna );
 		$this->assertSame( 'too_early', $this->service->record_attendance( $this->anna, $sunday, '2026-10-25', 'present' )['code'] );
 		$this->assertSame( 'not_a_lesson', $this->service->record_attendance( $this->anna, $sunday, '2026-10-17', 'present' )['code'], 'Sabato non c\'è questa lezione.' );
+		$this->assertSame( 'before_assignment', $this->service->record_attendance( $this->anna, $sunday, '2026-10-11', 'present' )['code'], 'Assegnata oggi: le lezioni passate non sono sue.' );
+		// Assegnazione di due mesi fa: le lezioni passate si registrano fino a 30 giorni.
+		$this->repo->update( $this->repo->slots_table(), $sunday, [ 'assigned_from' => '2026-08-01' ] );
 		$this->assertSame( 'too_old', $this->service->record_attendance( $this->anna, $sunday, '2026-08-16', 'present' )['code'] );
 		$this->assertSame( 'attendance_saved', $this->service->record_attendance( $this->anna, $sunday, '2026-10-11', 'present' )['code'], 'Una lezione passata si può ancora registrare.' );
 		$this->assertSame( 'attendance_locked', $this->service->record_attendance( $this->anna, $sunday, '2026-10-11', 'absent' )['code'] );
 		$this->assertSame( 'invalid', $this->service->record_attendance( $this->anna, $sunday, '2026-13-40', 'present' )['code'] );
 		$this->assertSame( 'invalid', $this->service->record_attendance( $this->anna, $sunday, self::TODAY, 'ritardo' )['code'] );
+	}
+
+	public function test_new_teacher_cannot_claim_or_overwrite_a_colleague_lessons(): void {
+		$slots  = $this->import();
+		$sunday = $slots['prova-karate|7|1']['id'];
+		$this->assign( $sunday, $this->anna );
+		$this->repo->update( $this->repo->slots_table(), $sunday, [ 'assigned_from' => '2026-09-01' ] );
+		$this->assertSame( 'attendance_saved', $this->service->record_attendance( $this->anna, $sunday, self::TODAY, 'present' )['code'] );
+
+		// La segreteria passa l'orario a Bruno.
+		$this->assign( $sunday, $this->bruno );
+		$this->assertSame( self::TODAY, $this->repo->find_slot( $sunday )['assigned_from'] );
+		$this->assertSame( 'attendance_locked', $this->service->record_attendance( $this->bruno, $sunday, self::TODAY, 'absent' )['code'], 'La registrazione di Anna non si sovrascrive.' );
+		$this->assertSame( 'present', $this->repo->find_attendance( $sunday, self::TODAY )['status'] );
+		$this->assertSame( 'before_assignment', $this->service->record_attendance( $this->bruno, $sunday, '2026-10-11', 'present' )['code'], 'Le lezioni non registrate di Anna non diventano di Bruno.' );
+		$this->assertSame( [ self::TODAY, '2026-10-25' ], array_column( $this->service->lessons_for_teacher( $this->bruno, '2026-10-04', '2026-10-25' ), 'lesson_date' ) );
+
+		// Cambio di giorno: le domeniche passate non diventano martedì da registrare.
+		$this->repo->update( $this->repo->slots_table(), $sunday, [ 'assigned_from' => '2026-09-01' ] );
+		$current = $this->repo->find_slot( $sunday );
+		$this->assertTrue(
+			$this->service->update_slot(
+				$this->segreteria,
+				$sunday,
+				[
+					'weekday'    => '2',
+					'start_time' => substr( (string) $current['start_time'], 0, 5 ),
+					'end_time'   => substr( (string) $current['end_time'], 0, 5 ),
+					'teacher_id' => (string) $this->bruno,
+					'location'   => (string) $current['location'],
+				]
+			)['ok']
+		);
+		$this->assertSame( 'before_assignment', $this->service->record_attendance( $this->bruno, $sunday, '2026-10-13', 'present' )['code'] );
 	}
 
 	public function test_teacher_cannot_record_for_a_colleague_or_unassigned_slot(): void {

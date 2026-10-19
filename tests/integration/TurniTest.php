@@ -232,6 +232,9 @@ final class TurniTest extends TestCase {
 		$this->assertSame( 'attendance_locked', $this->service->record_attendance( $this->mario, $past, 'present' )['code'] );
 
 		$this->assertSame( 'invalid', $this->service->record_attendance( $this->mario, $past, 'in_ritardo' )['code'] );
+
+		$old = $this->shift( $this->mario, '2026-08-01' );
+		$this->assertSame( 'too_old', $this->service->record_attendance( $this->mario, $old, 'present' )['code'], 'Un turno di mesi fa non si registra più.' );
 	}
 
 	public function test_employees_list_contains_only_employee_accounts(): void {

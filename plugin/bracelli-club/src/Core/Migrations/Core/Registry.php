@@ -29,6 +29,7 @@ final class Registry {
 			new M2026100004GrantShiftCapabilities(),
 			new M2026100005CreateCourseTables(),
 			new M2026100006GrantCourseCapabilities(),
+			new M2026100007AddSlotAssignedFrom(),
 		];
 	}
 }
