@@ -78,4 +78,55 @@ test.describe.serial( 'Archivio soci', () => {
 		).toContainText( 'Archiviato' );
 		expect( errors ).toEqual( [] );
 	} );
+
+	test( 'importa un CSV solo dopo anteprima e conferma, poi esporta l’archivio', async ( {
+		page,
+	} ) => {
+		const errors = collectErrors( page );
+		await portalLogin( page );
+		await page
+			.locator( 'a.bcp-tab' )
+			.filter( { hasText: 'Archivio soci' } )
+			.click();
+		await page.click( 'a:has-text("Importa CSV")' );
+		const csv = [
+			'Nome;Cognome;Email;Telefono;Data di nascita;Indirizzo;Comune;CAP;Stato;Note',
+			'Marta;CSV E2E;import-csv-e2e@example.org;3331230000;2008-12-05;Via CSV 1;Roma;00100;Attivo;Record di test',
+		].join( '\\n' );
+		await page.setInputFiles( '#bcp-soci-csv', {
+			name: 'importa-soci.csv',
+			mimeType: 'text/csv',
+			buffer: Buffer.from( csv ),
+		} );
+		await page.click( 'button:has-text("Carica e controlla")' );
+		await expect( page.locator( 'h1' ) ).toHaveText( 'Importa soci da CSV' );
+		await expect( page.locator( 'body' ) ).toContainText( 'Anteprima CSV' );
+		await expect( page.locator( 'body' ) ).toContainText(
+			'Nessuna modifica è stata ancora salvata'
+		);
+		await page.click( 'button:has-text("Conferma importazione")' );
+		await expect( page.locator( 'body' ) ).toContainText(
+			'Importazione CSV completata'
+		);
+
+		await page
+			.locator( 'a.bcp-tab' )
+			.filter( { hasText: 'Archivio soci' } )
+			.click();
+		await page.fill( '#bcp-soci-search', 'Marta' );
+		await page.click( 'button:has-text("Cerca")' );
+		await expect(
+			page.locator( 'tbody tr', { hasText: 'Marta CSV E2E' } )
+		).toBeVisible();
+
+		const downloadPromise = page.waitForEvent( 'download' );
+		await page
+			.locator( '.bcp-soci-toolbar form' )
+			.getByRole( 'button', { name: 'Esporta CSV' } )
+			.click();
+		const download = await downloadPromise;
+		expect( download.suggestedFilename() ).toMatch( /^bracelli-soci-.*\.csv$/ );
+		expect( errors ).toEqual( [] );
+	} );
+
 } );
