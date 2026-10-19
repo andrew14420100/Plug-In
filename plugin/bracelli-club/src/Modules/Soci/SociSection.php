@@ -42,7 +42,7 @@ final class SociSection implements SectionInterface {
 		return [
 			'soci'          => __( 'Archivio soci', 'bracelli-club' ),
 			'nuovo-socio'   => __( 'Nuovo socio', 'bracelli-club' ),
-			'modifica-socio'=> __( 'Scheda socio', 'bracelli-club' ),
+			'modifica-socio' => __( 'Scheda socio', 'bracelli-club' ),
 		];
 	}
 
@@ -172,7 +172,7 @@ final class SociSection implements SectionInterface {
 			'birth_date' => (string) ( $member['birth_date'] ?? '' ),
 			'address'    => (string) ( $member['address'] ?? '' ),
 			'city'       => (string) ( $member['city'] ?? '' ),
-			'postal_code'=> (string) ( $member['postal_code'] ?? '' ),
+			'postal_code' => (string) ( $member['postal_code'] ?? '' ),
 			'status'     => (string) ( $member['status'] ?? 'active' ),
 			'notes'      => (string) ( $member['notes'] ?? '' ),
 		];
@@ -195,7 +195,7 @@ final class SociSection implements SectionInterface {
 	<p><button class="bcp-button bcp-button--primary" type="submit"><?php esc_html_e( 'Salva anagrafica', 'bracelli-club' ); ?></button> <a class="bcp-button" href="<?php echo esc_url( Portal::url( [ 'vista' => 'soci' ] ) ); ?>"><?php esc_html_e( 'Annulla', 'bracelli-club' ); ?></a></p>
 </form>
 		<?php
-		if ( $id > 0 && 'archived' !== $member['status'] ) {
+		if ( $id > 0 && 'archived' !== (string) ( $member['status'] ?? '' ) ) {
 			echo '<form class="bcp-card" method="post" action="' . esc_url( Portal::url() ) . '">';
 			$this->portal->action_fields( 'soci_archive', $id );
 			echo '<p>' . esc_html__( 'Se non è più attivo, archivia il socio. I dati restano nello storico e non vengono cancellati.', 'bracelli-club' ) . '</p>';
