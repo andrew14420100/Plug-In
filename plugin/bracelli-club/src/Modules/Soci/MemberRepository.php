@@ -239,7 +239,15 @@ final class MemberRepository {
 
 		foreach ( array_diff( $current, $guardian_ids ) as $guardian_id ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- tabella del plugin.
-			if ( false === $this->db->delete( $table, [ 'member_id' => $member_id, 'guardian_id' => $guardian_id ] ) ) {
+			if (
+				false === $this->db->delete(
+					$table,
+					[
+						'member_id'   => $member_id,
+						'guardian_id' => $guardian_id,
+					]
+				)
+			) {
 				return false;
 			}
 		}
@@ -255,8 +263,8 @@ final class MemberRepository {
 	 * @param string[] $fields Campi modificati.
 	 */
 	public function record_history( int $member_id, int $actor, string $action, array $fields ): bool {
-		$table  = $this->history_table();
-		$fields = array_values( array_unique( array_filter( array_map( 'sanitize_key', $fields ) ) ) );
+		$table   = $this->history_table();
+		$fields  = array_values( array_unique( array_filter( array_map( 'sanitize_key', $fields ) ) ) );
 		$encoded = wp_json_encode( $fields );
 		if ( false === $encoded ) {
 			return false;
@@ -265,11 +273,11 @@ final class MemberRepository {
 		return false !== $this->db->insert(
 			$table,
 			[
-				'member_id'     => $member_id,
-				'actor_id'      => max( 0, $actor ),
-				'action'        => sanitize_key( $action ),
+				'member_id'      => $member_id,
+				'actor_id'       => max( 0, $actor ),
+				'action'         => sanitize_key( $action ),
 				'changed_fields' => $encoded,
-				'created_at'    => gmdate( 'Y-m-d H:i:s' ),
+				'created_at'     => gmdate( 'Y-m-d H:i:s' ),
 			]
 		);
 	}
@@ -297,8 +305,8 @@ final class MemberRepository {
 			$row['id']            = (int) $row['id'];
 			$row['member_id']     = (int) $row['member_id'];
 			$row['actor_id']      = (int) $row['actor_id'];
-			$row['fields']         = json_decode( (string) $row['changed_fields'], true );
-			$row['fields']         = is_array( $row['fields'] ) ? array_map( 'strval', $row['fields'] ) : [];
+			$row['fields']        = json_decode( (string) $row['changed_fields'], true );
+			$row['fields']        = is_array( $row['fields'] ) ? array_map( 'strval', $row['fields'] ) : [];
 			unset( $row['changed_fields'] );
 			$out[] = $row;
 		}
@@ -343,12 +351,14 @@ final class MemberRepository {
 		$table   = $this->guardians_table();
 		$queue   = [ $ancestor_id ];
 		$visited = [];
-		while ( [] !== $queue && count( $visited ) < 1000 ) {
+		$visited_count = 0;
+		while ( [] !== $queue && $visited_count < 1000 ) {
 			$current = (int) array_shift( $queue );
 			if ( isset( $visited[ $current ] ) ) {
 				continue;
 			}
 			$visited[ $current ] = true;
+			++$visited_count;
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- tabella interna e valore parametrizzato.
 			$children = $this->db->get_col( $this->db->prepare( "SELECT member_id FROM {$table} WHERE guardian_id = %d", $current ) );
 			foreach ( array_map( 'intval', (array) $children ) as $child_id ) {
