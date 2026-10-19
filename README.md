@@ -1,6 +1,6 @@
 # Bracelli Club Plug-In
 
-**Stato:** Fase 0 approvata. **Fase 1 (nucleo e dashboard) implementata in `plugin/bracelli-club`, versione 0.1.0, in attesa di collaudo e approvazione.** **Prototipo in prova locale (plugin 0.3.0, branch `prototype/presenze-locale-v0.1.0`): area riservata, corsi dai volantini e presenze degli insegnanti, turni del personale.** Nessuna release pubblicata.  
+**Stato:** Fase 0 approvata. **Fase 1 (nucleo e dashboard) implementata in `plugin/bracelli-club`, versione 0.1.0, in attesa di collaudo e approvazione.** **Prototipo in prova locale (plugin 0.3.0, branch `prototype/presenze-locale-v0.1.0`): area riservata, corsi dai volantini e presenze degli insegnanti, turni del personale.** **Audit WordPress.org e candidato 0.3.1 sul branch locale `audit/wordpress-org`: vedi `docs/AUDIT-WORDPRESS-ORG.md`.** Nessuna release pubblicata.  
 **Repository ufficiale:** https://github.com/andrew14420100/Plug-In  
 **Destinazione:** https://centrosportivobracelliclub.it/ (NON intervenire in produzione durante lo sviluppo).  
 **Strumenti:** Claude Code, WordPress, PHP, React/TypeScript, LocalWP (Windows), GitHub Actions.  

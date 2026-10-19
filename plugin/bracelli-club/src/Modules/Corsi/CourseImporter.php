@@ -295,10 +295,11 @@ final class CourseImporter {
 					$id = $this->repo->insert(
 						$this->repo->slots_table(),
 						$data + [
-							'ext_key'    => $slot['ext_key'],
-							'course_id'  => $ids[ $slot['course_key'] ],
-							'created_by' => $actor,
-							'created_at' => $now,
+							'ext_key'       => $slot['ext_key'],
+							'course_id'     => $ids[ $slot['course_key'] ],
+							'created_by'    => $actor,
+							'created_at'    => $now,
+							'assigned_from' => current_time( 'Y-m-d' ),
 						]
 					);
 					if ( 0 === $id ) {

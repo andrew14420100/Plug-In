@@ -67,6 +67,24 @@ final class AdminActionsTest extends TestCase {
 		$this->assertSame( 'dark', $this->plugin->settings->get( 'ui.default_theme' ) );
 	}
 
+	public function test_only_administrators_enable_data_deletion_on_uninstall(): void {
+		get_role( Roles::SEGRETERIA )->add_cap( Capabilities::SETTINGS_MANAGE );
+		$this->login_as( Roles::SEGRETERIA );
+		$location = $this->admin_post(
+			SettingsPage::ACTION_SAVE,
+			SettingsPage::ACTION_SAVE,
+			[ 'settings' => [ 'ui.default_theme' => 'dark', 'uninstall.delete_data' => '1' ] ]
+		);
+		get_role( Roles::SEGRETERIA )->remove_cap( Capabilities::SETTINGS_MANAGE );
+		$this->assertStringContainsString( 'bc_notice=saved', $location );
+		$this->assertSame( 'dark', $this->plugin->settings->get( 'ui.default_theme' ) );
+		$this->assertFalse( $this->plugin->settings->get( 'uninstall.delete_data' ), 'Un ruolo delegato non attiva la cancellazione dei dati.' );
+
+		$this->login_as( 'administrator' );
+		$this->admin_post( SettingsPage::ACTION_SAVE, SettingsPage::ACTION_SAVE, [ 'settings' => [ 'uninstall.delete_data' => '1' ] ] );
+		$this->assertTrue( $this->plugin->settings->get( 'uninstall.delete_data' ) );
+	}
+
 	public function test_settings_require_capability(): void {
 		$this->login_as( 'editor' );
 		$this->expectException( \WPDieException::class );

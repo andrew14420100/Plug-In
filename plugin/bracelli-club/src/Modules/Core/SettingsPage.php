@@ -31,6 +31,9 @@ final class SettingsPage {
 
 	private const PREVIEW_TTL = 900;
 
+	/** Impostazione che solo chi ha manage_options può cambiare. */
+	private const ADMIN_ONLY = 'uninstall.delete_data';
+
 	/**
 	 * @param Plugin $plugin Servizi.
 	 */
@@ -84,12 +87,16 @@ final class SettingsPage {
 			$help     = $labels[ $key ]['help'] ?? '';
 			echo '<div class="bc-field' . ( 'uninstall.delete_data' === $key ? ' bc-field--danger' : '' ) . '">';
 			if ( 'bool' === $def['type'] ) {
-				echo '<input type="hidden" name="settings[' . esc_attr( $key ) . ']" value="0">';
+				$locked = self::ADMIN_ONLY === $key && ! current_user_can( 'manage_options' );
+				if ( ! $locked ) {
+					echo '<input type="hidden" name="settings[' . esc_attr( $key ) . ']" value="0">';
+				}
 				printf(
-					'<label class="bc-switch" for="%1$s"><input type="checkbox" id="%1$s" name="settings[%2$s]" value="1"%3$s aria-describedby="%1$s-help"><span>%4$s</span></label>',
+					'<label class="bc-switch" for="%1$s"><input type="checkbox" id="%1$s" name="settings[%2$s]" value="1"%3$s%4$s aria-describedby="%1$s-help"><span>%5$s</span></label>',
 					esc_attr( $field_id ),
 					esc_attr( $key ),
 					checked( true, (bool) $values[ $key ], false ),
+					disabled( $locked, true, false ),
 					esc_html( $label )
 				);
 			} else {
@@ -179,6 +186,10 @@ final class SettingsPage {
 		$result = Settings::validate( $raw );
 		if ( [] !== $result['errors'] ) {
 			Layout::redirect( self::SLUG, 'invalid' );
+		}
+		// La cancellazione dei dati alla disinstallazione la decide solo un amministratore WordPress.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			unset( $result['values'][ self::ADMIN_ONLY ] );
 		}
 		$diff = $this->plugin->settings->update( $result['values'] );
 		if ( [] === $diff ) {

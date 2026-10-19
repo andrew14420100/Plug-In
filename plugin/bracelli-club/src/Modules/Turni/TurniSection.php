@@ -100,6 +100,7 @@ final class TurniSection implements SectionInterface {
 			'has_attendance'    => [ 'error', __( 'Il dipendente ha già registrato presenza o assenza: il turno non si può più modificare né annullare.', 'bracelli-club' ) ],
 			'too_early'         => [ 'error', __( 'Potrai registrare presenza o assenza dal giorno del turno.', 'bracelli-club' ) ],
 			'attendance_locked' => [ 'error', __( 'La registrazione si può cambiare solo nel giorno del turno.', 'bracelli-club' ) ],
+			'too_old'           => [ 'error', __( 'Il turno è troppo vecchio per essere registrato: avvisa la segreteria.', 'bracelli-club' ) ],
 		];
 	}
 
