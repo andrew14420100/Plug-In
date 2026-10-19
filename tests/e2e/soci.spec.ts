@@ -18,8 +18,13 @@ test.describe.serial( 'Archivio soci', () => {
 	} ) => {
 		const errors = collectErrors( page );
 		await portalLogin( page );
-		await expect( page.locator( 'h1' ) ).toHaveText( 'Panoramica segreteria' );
-		await page.locator( 'a.bcp-tab' ).filter( { hasText: 'Archivio soci' } ).click();
+		await expect( page.locator( 'h1' ) ).toHaveText(
+			'Panoramica segreteria'
+		);
+		await page
+			.locator( 'a.bcp-tab' )
+			.filter( { hasText: 'Archivio soci' } )
+			.click();
 		await expect( page.locator( 'h1' ) ).toHaveText( 'Archivio soci' );
 
 		await page.click( 'a:has-text("Aggiungi socio")' );
@@ -47,7 +52,9 @@ test.describe.serial( 'Archivio soci', () => {
 
 		await page.fill( '#bcp-soci-search', 'Nicolò' );
 		await page.click( 'button:has-text("Cerca")' );
-		const row = page.locator( 'tbody tr', { hasText: 'Nicolò E2E Famiglia' } );
+		const row = page.locator( 'tbody tr', {
+			hasText: 'Nicolò E2E Famiglia',
+		} );
 		await expect( row ).toBeVisible();
 		await row.locator( 'a:has-text("Apri scheda")' ).click();
 		await expect( page.locator( 'h1' ) ).toHaveText( 'Scheda socio' );
