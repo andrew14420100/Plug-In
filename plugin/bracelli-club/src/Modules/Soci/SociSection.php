@@ -59,24 +59,23 @@ final class SociSection implements SectionInterface {
 
 	/** {@inheritDoc} */
 	public function messages(): array {
-				return [
-			'created'             => [ 'success', __( 'Anagrafica creata.', 'bracelli-club' ) ],
-			'updated'             => [ 'success', __( 'Anagrafica aggiornata.', 'bracelli-club' ) ],
-			'archived'            => [ 'success', __( 'Socio archiviato. Il record resta nello storico.', 'bracelli-club' ) ],
-			'restored'            => [ 'success', __( 'Socio riattivato.', 'bracelli-club' ) ],
-			'unchanged'           => [ 'info', __( 'Nessuna modifica da salvare.', 'bracelli-club' ) ],
-			'not_found'           => [ 'error', __( 'Socio non trovato.', 'bracelli-club' ) ],
-			'duplicate'           => [ 'error', __( 'Esiste già un socio con questa email.', 'bracelli-club' ) ],
-			'import_preview'      => [ 'info', __( 'Anteprima CSV pronta: i dati non sono ancora stati salvati.', 'bracelli-club' ) ],
-			'import_invalid'      => [ 'error', __( 'Il file presenta errori: correggili e caricalo di nuovo. Nessuna riga è stata importata.', 'bracelli-club' ) ],
-			'import_file_error'   => [ 'error', __( 'Il file non è stato caricato correttamente. Seleziona un CSV valido fino a 1 MB.', 'bracelli-club' ) ],
-			'import_expired'      => [ 'error', __( 'L’anteprima è scaduta o non è valida. Carica nuovamente il file.', 'bracelli-club' ) ],
-			'import_applied'      => [ 'success', __( 'Importazione CSV completata.', 'bracelli-club' ) ],
-			'import_partial'      => [ 'warning', __( 'Importazione terminata con alcune righe non salvate: controlla il rapporto.', 'bracelli-club' ) ],
-			'import_discarded'    => [ 'info', __( 'Anteprima importazione scartata.', 'bracelli-club' ) ],
+		return [
+			'created'           => [ 'success', __( 'Anagrafica creata.', 'bracelli-club' ) ],
+			'updated'           => [ 'success', __( 'Anagrafica aggiornata.', 'bracelli-club' ) ],
+			'archived'          => [ 'success', __( 'Socio archiviato. Il record resta nello storico.', 'bracelli-club' ) ],
+			'restored'          => [ 'success', __( 'Socio riattivato.', 'bracelli-club' ) ],
+			'unchanged'         => [ 'info', __( 'Nessuna modifica da salvare.', 'bracelli-club' ) ],
+			'not_found'         => [ 'error', __( 'Socio non trovato.', 'bracelli-club' ) ],
+			'duplicate'         => [ 'error', __( 'Esiste già un socio con questa email.', 'bracelli-club' ) ],
+			'import_preview'    => [ 'info', __( 'Anteprima CSV pronta: i dati non sono ancora stati salvati.', 'bracelli-club' ) ],
+			'import_invalid'    => [ 'error', __( 'Il file presenta errori: correggili e caricalo di nuovo. Nessuna riga è stata importata.', 'bracelli-club' ) ],
+			'import_file_error' => [ 'error', __( 'Il file non è stato caricato correttamente. Seleziona un CSV valido fino a 1 MB.', 'bracelli-club' ) ],
+			'import_expired'    => [ 'error', __( 'L’anteprima è scaduta o non è valida. Carica nuovamente il file.', 'bracelli-club' ) ],
+			'import_applied'    => [ 'success', __( 'Importazione CSV completata.', 'bracelli-club' ) ],
+			'import_partial'    => [ 'warning', __( 'Importazione terminata con alcune righe non salvate: controlla il rapporto.', 'bracelli-club' ) ],
+			'import_discarded'  => [ 'info', __( 'Anteprima importazione scartata.', 'bracelli-club' ) ],
 		];
 	}
-
 	/** {@inheritDoc} */
 	public function handle( Portal $portal, int $user, string $action, int $id ): void {
 		$this->portal = $portal;
