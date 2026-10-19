@@ -40,8 +40,8 @@ final class SociSection implements SectionInterface {
 			return [];
 		}
 		return [
-			'soci'          => __( 'Archivio soci', 'bracelli-club' ),
-			'nuovo-socio'   => __( 'Nuovo socio', 'bracelli-club' ),
+			'soci'           => __( 'Archivio soci', 'bracelli-club' ),
+			'nuovo-socio'    => __( 'Nuovo socio', 'bracelli-club' ),
 			'modifica-socio' => __( 'Scheda socio', 'bracelli-club' ),
 		];
 	}
@@ -74,16 +74,36 @@ final class SociSection implements SectionInterface {
 			$input  = $portal->posted( [ 'first_name', 'last_name', 'email', 'phone', 'birth_date', 'address', 'city', 'postal_code', 'status', 'notes' ] );
 			$result = $this->service->save( $user, $id, $input );
 			if ( $result['ok'] ) {
-				$portal->redirect( [ 'vista' => 'soci', 'esito' => $result['code'] ] );
+				$portal->redirect(
+					[
+						'vista' => 'soci',
+						'esito' => $result['code'],
+					]
+				);
 			}
-			$portal->keep_errors( $result, $input, $id > 0 ? 'modifica-socio' : 'nuovo-socio', $id > 0 ? [ 'vista' => 'modifica-socio', 'socio' => $id ] : [ 'vista' => 'nuovo-socio' ] );
+			$portal->keep_errors(
+				$result,
+				$input,
+				$id > 0 ? 'modifica-socio' : 'nuovo-socio',
+				$id > 0 ? [ 'vista' => 'modifica-socio', 'socio' => $id ] : [ 'vista' => 'nuovo-socio' ]
+			);
 			return;
 		}
 		if ( 'archive' === $action ) {
 			$result = $this->service->set_status( $user, $id, 'archived' );
-			$portal->redirect( [ 'vista' => 'soci', 'esito' => $result['code'] ] );
+			$portal->redirect(
+				[
+					'vista' => 'soci',
+					'esito' => $result['code'],
+				]
+			);
 		}
-		$portal->redirect( [ 'vista' => 'soci', 'esito' => 'invalid' ] );
+		$portal->redirect(
+			[
+				'vista' => 'soci',
+				'esito' => 'invalid',
+			]
+		);
 	}
 
 	/** {@inheritDoc} */
@@ -130,6 +150,7 @@ final class SociSection implements SectionInterface {
 	<button class="bcp-button" type="submit"><?php esc_html_e( 'Cerca', 'bracelli-club' ); ?></button>
 </form>
 		<?php
+		/* translators: %s: number of matching member records. */
 		echo '<p class="bcp-muted">' . esc_html( sprintf( __( '%s soci trovati', 'bracelli-club' ), number_format_i18n( $result['total'] ) ) ) . '</p>';
 		if ( [] === $result['items'] ) {
 			echo '<div class="bcp-card"><p>' . esc_html__( 'Nessun socio trovato con questi filtri.', 'bracelli-club' ) . '</p></div>';
@@ -141,7 +162,12 @@ final class SociSection implements SectionInterface {
 		}
 		echo '</tr></thead><tbody>';
 		foreach ( $result['items'] as $member ) {
-			$url = Portal::url( [ 'vista' => 'modifica-socio', 'socio' => (int) $member['id'] ] );
+			$url = Portal::url(
+				[
+					'vista' => 'modifica-socio',
+					'socio' => (int) $member['id'],
+				]
+			);
 			echo '<tr><td data-label="' . esc_attr__( 'Cognome e nome', 'bracelli-club' ) . '"><strong>' . esc_html( $member['last_name'] . ' ' . $member['first_name'] ) . '</strong></td>';
 			echo '<td data-label="' . esc_attr__( 'Contatti', 'bracelli-club' ) . '">' . esc_html( $member['email'] ) . ( '' !== $member['phone'] ? '<br>' . esc_html( $member['phone'] ) : '' ) . '</td>';
 			echo '<td data-label="' . esc_attr__( 'Stato', 'bracelli-club' ) . '">' . esc_html( $this->status_label( (string) $member['status'] ) ) . '</td>';
@@ -152,7 +178,14 @@ final class SociSection implements SectionInterface {
 		if ( $pages > 1 ) {
 			echo '<nav class="bcp-pagination" aria-label="' . esc_attr__( 'Pagine archivio soci', 'bracelli-club' ) . '">';
 			for ( $n = 1; $n <= $pages; $n++ ) {
-				$url = Portal::url( [ 'vista' => 'soci', 'q' => $search, 'stato' => $status, 'pagina' => $n ] );
+				$url = Portal::url(
+				[
+					'vista'  => 'soci',
+					'q'      => $search,
+					'stato'  => $status,
+					'pagina' => $n,
+				]
+			);
 				echo '<a class="bcp-button' . ( $n === $page ? ' bcp-button--primary' : '' ) . '" href="' . esc_url( $url ) . '"' . ( $n === $page ? ' aria-current="page"' : '' ) . '>' . esc_html( (string) $n ) . '</a> ';
 			}
 			echo '</nav>';
