@@ -478,6 +478,454 @@ final class SociSection implements SectionInterface {
 		return $member_id > 0 ? $this->repo->guardian_ids( $member_id ) : [];
 	}
 
+	/**
+	 * Schermata di anteprima e conferma dell'importazione CSV.
+	 */
+	private function render_import_view( int $user ): void {
+		$preview = get_transient( $this->import_key( $user ) );
+		$report  = get_transient( $this->report_key( $user ) );
+
+		echo '<p><a class="bcp-button" href="' . esc_url( Portal::url( [ 'vista' => 'soci' ] ) ) . '">' . esc_html__( 'Torna all’archivio', 'bracelli-club' ) . '</a></p>';
+
+		if ( is_array( $report ) ) {
+			echo '<section class="bcp-card"><h2>' . esc_html__( 'Rapporto importazione', 'bracelli-club' ) . '</h2>';
+			echo '<p>' . esc_html(
+				sprintf(
+					/* translators: 1: created rows, 2: failed rows. */
+					__( 'Anagrafiche create: %1$d. Righe non salvate: %2$d.', 'bracelli-club' ),
+					(int) $report['created'],
+					(int) $report['failed']
+				)
+			) . '</p>';
+			if ( [] !== $report['failures'] ) {
+				echo '<ul>';
+				foreach ( $report['failures'] as $failure ) {
+					echo '<li>' . esc_html( sprintf( __( 'Riga %1$d: %2$s', 'bracelli-club' ), (int) $failure['line'], (string) $failure['message'] ) ) . '</li>';
+				}
+				echo '</ul>';
+			}
+			echo '</section>';
+		}
+
+		if ( is_array( $preview ) ) {
+			echo '<section class="bcp-card"><h2>' . esc_html__( 'Anteprima CSV', 'bracelli-club' ) . '</h2>';
+			echo '<p>' . esc_html( (string) $preview['filename'] ) . ' — ' . esc_html( sprintf( __( '%d righe da analizzare', 'bracelli-club' ), count( $preview['rows'] ) ) ) . '</p>';
+
+			if ( [] !== $preview['fatal_errors'] ) {
+				echo '<ul class="bcp-import-errors">';
+				foreach ( $preview['fatal_errors'] as $error ) {
+					echo '<li>' . esc_html( (string) $error ) . '</li>';
+				}
+				echo '</ul>';
+			}
+
+			if ( [] !== $preview['rows'] ) {
+				echo '<div class="bcp-table-wrap"><table class="bcp-table"><thead><tr>';
+				echo '<th scope="col">' . esc_html__( 'Riga', 'bracelli-club' ) . '</th>';
+				echo '<th scope="col">' . esc_html__( 'Anagrafica', 'bracelli-club' ) . '</th>';
+				echo '<th scope="col">' . esc_html__( 'Controllo', 'bracelli-club' ) . '</th>';
+				echo '</tr></thead><tbody>';
+				foreach ( $preview['rows'] as $row ) {
+					$member_name = trim( $row['data']['last_name'] . ' ' . $row['data']['first_name'] );
+					$details     = [];
+					foreach ( $row['errors'] as $error ) {
+						$details[] = __( 'Errore: ', 'bracelli-club' ) . $error;
+					}
+					foreach ( $row['warnings'] as $warning ) {
+						$details[] = __( 'Attenzione: ', 'bracelli-club' ) . $warning;
+					}
+					if ( [] === $details ) {
+						$details[] = __( 'Pronta per l’importazione', 'bracelli-club' );
+					}
+					echo '<tr><td data-label="' . esc_attr__( 'Riga', 'bracelli-club' ) . '">' . esc_html( (string) $row['line'] ) . '</td>';
+					echo '<td data-label="' . esc_attr__( 'Anagrafica', 'bracelli-club' ) . '">' . esc_html( '' !== $member_name ? $member_name : __( 'Nome mancante', 'bracelli-club' ) ) . '</td>';
+					echo '<td data-label="' . esc_attr__( 'Controllo', 'bracelli-club' ) . '">' . esc_html( implode( ' — ', $details ) ) . '</td></tr>';
+				}
+				echo '</tbody></table></div>';
+			}
+
+			if ( [] === $preview['fatal_errors'] && 0 === (int) $preview['error_count'] && [] !== $preview['rows'] ) {
+				echo '<p>' . esc_html__( 'Nessuna modifica è stata ancora salvata. La conferma crea nuove anagrafiche, non aggiorna né cancella record esistenti.', 'bracelli-club' ) . '</p>';
+				echo '<form class="bcp-inline-form" method="post" action="' . esc_url( Portal::url( [ 'vista' => 'importa-soci' ] ) ) . '">';
+				$this->portal->action_fields( 'soci_import_apply' );
+				echo '<button class="bcp-button bcp-button--primary" type="submit">' . esc_html__( 'Conferma importazione', 'bracelli-club' ) . '</button></form>';
+			} else {
+				echo '<p class="bcp-alert bcp-alert--warning">' . esc_html__( 'Sono presenti errori bloccanti. Nessuna riga verrà importata; correggi il CSV e ricaricalo.', 'bracelli-club' ) . '</p>';
+			}
+
+			echo '<form class="bcp-inline-form" method="post" action="' . esc_url( Portal::url( [ 'vista' => 'importa-soci' ] ) ) . '">';
+			$this->portal->action_fields( 'soci_import_discard' );
+			echo '<button class="bcp-button" type="submit">' . esc_html__( 'Scarta anteprima', 'bracelli-club' ) . '</button></form>';
+			echo '</section>';
+		}
+
+		?>
+<form class="bcp-card bcp-form" method="post" enctype="multipart/form-data" action="<?php echo esc_url( Portal::url( [ 'vista' => 'importa-soci' ] ) ); ?>">
+		<?php $this->portal->action_fields( 'soci_import_preview' ); ?>
+	<h2><?php esc_html_e( 'Carica un file CSV', 'bracelli-club' ); ?></h2>
+	<p class="bcp-muted"><?php esc_html_e( 'Il file deve contenere una riga di intestazione e le colonne Nome e Cognome. Può essere separato da punto e virgola o virgola. Il caricamento prepara solo un’anteprima.', 'bracelli-club' ); ?></p>
+	<div class="bcp-field">
+		<label for="bcp-soci-csv"><?php esc_html_e( 'File CSV (massimo 1 MB, 500 righe)', 'bracelli-club' ); ?></label>
+		<input id="bcp-soci-csv" type="file" name="soci_csv" accept=".csv,text/csv" required>
+	</div>
+	<p><button class="bcp-button bcp-button--primary" type="submit"><?php esc_html_e( 'Carica e controlla', 'bracelli-club' ); ?></button></p>
+</form>
+<form class="bcp-card" method="post" action="<?php echo esc_url( Portal::url( [ 'vista' => 'importa-soci' ] ) ); ?>">
+		<?php $this->portal->action_fields( 'soci_template' ); ?>
+	<h2><?php esc_html_e( 'Modello CSV', 'bracelli-club' ); ?></h2>
+	<p><?php esc_html_e( 'Scarica il modello vuoto per preparare i dati con le intestazioni riconosciute dall’archivio.', 'bracelli-club' ); ?></p>
+	<button class="bcp-button" type="submit"><?php esc_html_e( 'Scarica modello', 'bracelli-club' ); ?></button>
+</form>
+		<?php
+	}
+
+	/**
+	 * Prepara e controlla il file senza scrivere nel database.
+	 *
+	 * @return array{filename: string, rows: array<int, array{line: int, data: array<string, string>, errors: string[], warnings: string[]}>, fatal_errors: string[], error_count: int}
+	 */
+	private function create_import_preview( int $user ): array {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- il nonce è stato verificato dal portale prima del dispatch.
+		$file = isset( $_FILES['soci_csv'] ) && is_array( $_FILES['soci_csv'] ) ? $_FILES['soci_csv'] : null;
+		$filename = is_array( $file ) ? sanitize_file_name( (string) ( $file['name'] ?? '' ) ) : '';
+		$tmp      = is_array( $file ) ? (string) ( $file['tmp_name'] ?? '' ) : '';
+		$base     = [
+			'filename'     => $filename,
+			'rows'         => [],
+			'fatal_errors' => [],
+			'error_count'  => 0,
+		];
+
+		if (
+			null === $file
+			|| UPLOAD_ERR_OK !== (int) ( $file['error'] ?? UPLOAD_ERR_NO_FILE )
+			|| '' === $tmp
+			|| ! is_uploaded_file( $tmp )
+		) {
+			$base['fatal_errors'][] = __( 'Il file non è stato caricato correttamente.', 'bracelli-club' );
+			return $base;
+		}
+		if ( (int) ( $file['size'] ?? 0 ) > 1048576 || ! preg_match( '/\.csv$/i', $filename ) ) {
+			$base['fatal_errors'][] = __( 'Seleziona un file CSV di massimo 1 MB.', 'bracelli-club' );
+			return $base;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file caricato e verificato, letto in locale.
+		$content = (string) file_get_contents( $tmp );
+		if ( '' === trim( $content ) ) {
+			$base['fatal_errors'][] = __( 'Il file CSV è vuoto.', 'bracelli-club' );
+			return $base;
+		}
+
+		$first_line = strtok( $content, "\r\n" );
+		$delimiter  = is_string( $first_line ) && substr_count( $first_line, ';' ) > substr_count( $first_line, ',' ) ? ';' : ',';
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen -- stream temporaneo in memoria, non un file permanente.
+		$stream = fopen( 'php://temp', 'r+' );
+		if ( false === $stream ) {
+			$base['fatal_errors'][] = __( 'Non è stato possibile leggere il CSV.', 'bracelli-club' );
+			return $base;
+		}
+		fwrite( $stream, $content );
+		rewind( $stream );
+		$headers = fgetcsv( $stream, null, $delimiter, '"', '' );
+		if ( false === $headers || [] === $headers ) {
+			fclose( $stream );
+			$base['fatal_errors'][] = __( 'Il file non contiene intestazioni valide.', 'bracelli-club' );
+			return $base;
+		}
+
+		$aliases = [
+			'nome'            => 'first_name',
+			'first_name'      => 'first_name',
+			'first-name'      => 'first_name',
+			'cognome'         => 'last_name',
+			'last_name'       => 'last_name',
+			'last-name'       => 'last_name',
+			'email'           => 'email',
+			'e-mail'          => 'email',
+			'telefono'        => 'phone',
+			'phone'           => 'phone',
+			'cellulare'       => 'phone',
+			'data_di_nascita' => 'birth_date',
+			'data_nascita'    => 'birth_date',
+			'birth_date'      => 'birth_date',
+			'indirizzo'       => 'address',
+			'address'         => 'address',
+			'comune'          => 'city',
+			'citta'           => 'city',
+			'city'            => 'city',
+			'cap'             => 'postal_code',
+			'postal_code'     => 'postal_code',
+			'stato'           => 'status',
+			'status'          => 'status',
+			'note'            => 'notes',
+			'note_interne'    => 'notes',
+			'notes'           => 'notes',
+		];
+		$columns = [];
+		foreach ( $headers as $index => $header ) {
+			$normalized = strtolower( trim( remove_accents( ltrim( (string) $header, "\xEF\xBB\xBF" ) ) ) );
+			$normalized = sanitize_key( str_replace( [ ' ', '-' ], '_', $normalized ) );
+			$target     = $aliases[ $normalized ] ?? '';
+			if ( '' !== $target ) {
+				$columns[ $target ] = (int) $index;
+			}
+		}
+		if ( ! isset( $columns['first_name'], $columns['last_name'] ) ) {
+			fclose( $stream );
+			$base['fatal_errors'][] = __( 'Mancano le colonne obbligatorie Nome e Cognome. Scarica il modello e riprova.', 'bracelli-club' );
+			return $base;
+		}
+
+		$seen_emails = [];
+		$line        = 1;
+		while ( false !== ( $cells = fgetcsv( $stream, null, $delimiter, '"', '' ) ) ) {
+			++$line;
+			$filled = array_filter( $cells, static fn( $cell ): bool => '' !== trim( (string) $cell ) );
+			if ( [] === $filled ) {
+				continue;
+			}
+			if ( count( $base['rows'] ) >= 500 ) {
+				$base['fatal_errors'][] = __( 'Il file supera il limite di 500 righe. Dividilo in più file.', 'bracelli-club' );
+				break;
+			}
+
+			$data = [
+				'first_name' => '',
+				'last_name'  => '',
+				'email'      => '',
+				'phone'      => '',
+				'birth_date' => '',
+				'address'    => '',
+				'city'       => '',
+				'postal_code' => '',
+				'status'     => 'active',
+				'notes'      => '',
+			];
+			foreach ( $columns as $field => $index ) {
+				$data[ $field ] = trim( (string) ( $cells[ $index ] ?? '' ) );
+			}
+			$data['first_name']  = sanitize_text_field( $data['first_name'] );
+			$data['last_name']   = sanitize_text_field( $data['last_name'] );
+			$data['email']       = sanitize_email( $data['email'] );
+			$data['phone']       = sanitize_text_field( $data['phone'] );
+			$data['address']     = sanitize_text_field( $data['address'] );
+			$data['city']        = sanitize_text_field( $data['city'] );
+			$data['postal_code'] = sanitize_text_field( $data['postal_code'] );
+			$data['notes']       = sanitize_textarea_field( $data['notes'] );
+
+			$errors   = [];
+			$warnings = [];
+			if ( '' === $data['first_name'] ) {
+				$errors[] = __( 'Nome mancante.', 'bracelli-club' );
+			}
+			if ( '' === $data['last_name'] ) {
+				$errors[] = __( 'Cognome mancante.', 'bracelli-club' );
+			}
+			if ( strlen( $data['first_name'] ) > 100 || strlen( $data['last_name'] ) > 100 ) {
+				$errors[] = __( 'Nome o cognome troppo lungo.', 'bracelli-club' );
+			}
+			$raw_email = isset( $columns['email'] ) ? trim( (string) ( $cells[ $columns['email'] ] ?? '' ) ) : '';
+			if ( '' !== $raw_email && ( '' === $data['email'] || ! is_email( $data['email'] ) ) ) {
+				$errors[] = __( 'Indirizzo email non valido.', 'bracelli-club' );
+			}
+			if ( '' !== $data['email'] ) {
+				$email_key = strtolower( $data['email'] );
+				if ( isset( $seen_emails[ $email_key ] ) || $this->repo->email_exists( $data['email'] ) ) {
+					$errors[] = __( 'Email già presente nell’archivio o duplicata nel file.', 'bracelli-club' );
+				}
+				$seen_emails[ $email_key ] = $line;
+			}
+
+			$data['birth_date'] = $this->normalize_birth_date( $data['birth_date'] );
+			$raw_birth = isset( $columns['birth_date'] ) ? trim( (string) ( $cells[ $columns['birth_date'] ] ?? '' ) ) : '';
+			if ( '' !== $raw_birth && '' === $data['birth_date'] ) {
+				$errors[] = __( 'Data di nascita non valida: usa AAAA-MM-GG o GG/MM/AAAA.', 'bracelli-club' );
+			}
+			$status_text = strtolower( remove_accents( trim( $data['status'] ) ) );
+			$status_map  = [
+				''           => 'active',
+				'attivo'     => 'active',
+				'active'     => 'active',
+				'sospeso'    => 'suspended',
+				'suspended'  => 'suspended',
+				'archiviato'  => 'archived',
+				'archived'    => 'archived',
+			];
+			if ( ! isset( $status_map[ $status_text ] ) ) {
+				$errors[] = __( 'Stato non valido: usa Attivo, Sospeso o Archiviato.', 'bracelli-club' );
+			} else {
+				$data['status'] = $status_map[ $status_text ];
+			}
+			if ( strlen( $data['address'] ) > 190 || strlen( $data['city'] ) > 100 || strlen( $data['postal_code'] ) > 20 || strlen( $data['phone'] ) > 40 || strlen( $data['email'] ) > 190 || strlen( $data['notes'] ) > 4000 ) {
+				$errors[] = __( 'Uno o più campi superano la lunghezza consentita.', 'bracelli-club' );
+			}
+
+			$duplicate_matches = $this->service->possible_duplicates(
+				$user,
+				$data['first_name'],
+				$data['last_name'],
+				$data['birth_date']
+			);
+			if ( [] !== $duplicate_matches ) {
+				$warnings[] = __( 'Esistono anagrafiche con nome e cognome simili: verifica prima di confermare.', 'bracelli-club' );
+			}
+			$base['error_count'] += count( $errors );
+			$base['rows'][] = [
+				'line'     => $line,
+				'data'     => $data,
+				'errors'   => $errors,
+				'warnings' => $warnings,
+			];
+		}
+		fclose( $stream );
+		if ( [] === $base['rows'] && [] === $base['fatal_errors'] ) {
+			$base['fatal_errors'][] = __( 'Il file non contiene righe da importare.', 'bracelli-club' );
+		}
+		return $base;
+	}
+
+	/**
+	 * Converte le date supportate in formato ISO.
+	 */
+	private function normalize_birth_date( string $value ): string {
+		$value = trim( $value );
+		if ( '' === $value ) {
+			return '';
+		}
+		if ( preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $value, $parts ) ) {
+			return checkdate( (int) $parts[2], (int) $parts[3], (int) $parts[1] ) ? $value : '';
+		}
+		if ( preg_match( '/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $value, $parts ) ) {
+			if ( ! checkdate( (int) $parts[2], (int) $parts[1], (int) $parts[3] ) ) {
+				return '';
+			}
+			return sprintf( '%04d-%02d-%02d', (int) $parts[3], (int) $parts[2], (int) $parts[1] );
+		}
+		return '';
+	}
+
+	/**
+	 * Applica un’anteprima valida e registra eventuali righe non salvate.
+	 */
+	private function apply_import( Portal $portal, int $user ): void {
+		$preview = get_transient( $this->import_key( $user ) );
+		if (
+			! is_array( $preview )
+			|| [] === $preview['rows']
+			|| [] !== $preview['fatal_errors']
+			|| 0 !== (int) $preview['error_count']
+		) {
+			$portal->redirect( [ 'vista' => 'importa-soci', 'esito' => 'import_expired' ] );
+		}
+
+		$created  = 0;
+		$failures = [];
+		foreach ( $preview['rows'] as $row ) {
+			$result = $this->service->save( $user, 0, $row['data'] );
+			if ( $result['ok'] && 'created' === $result['code'] ) {
+				++$created;
+			} else {
+				$failures[] = [
+					'line'    => (int) $row['line'],
+					'message' => implode( ' ', array_values( $result['errors'] ) ) ?: __( 'Il record non è stato salvato. Potrebbe essere cambiato dopo l’anteprima.', 'bracelli-club' ),
+				];
+			}
+		}
+		delete_transient( $this->import_key( $user ) );
+		set_transient(
+			$this->report_key( $user ),
+			[
+				'created'  => $created,
+				'failed'   => count( $failures ),
+				'failures' => $failures,
+			],
+			30 * MINUTE_IN_SECONDS
+		);
+		$portal->redirect(
+			[
+				'vista' => 'importa-soci',
+				'esito' => [] === $failures ? 'import_applied' : 'import_partial',
+			]
+		);
+	}
+
+	/**
+	 * Esporta il modello vuoto o le anagrafiche, soltanto per utenti autorizzati.
+	 */
+	private function download_csv( int $user, bool $template ): void {
+		if ( ! $this->service->can_manage( $user ) ) {
+			status_header( 403 );
+			exit;
+		}
+		$rows = $template ? [] : $this->repo->export_all();
+		if ( ! $template ) {
+			$this->service->record_export( $user, count( $rows ) );
+		}
+		$filename = $template ? 'modello-import-soci.csv' : 'bracelli-soci-' . gmdate( 'Ymd-His' ) . '.csv';
+		nocache_headers();
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen -- stream di risposta, nessun file creato.
+		$stream = fopen( 'php://output', 'w' );
+		if ( false === $stream ) {
+			status_header( 500 );
+			exit;
+		}
+		fwrite( $stream, "\xEF\xBB\xBF" );
+		fputcsv(
+			$stream,
+			[
+				'Nome',
+				'Cognome',
+				'Email',
+				'Telefono',
+				'Data di nascita',
+				'Indirizzo',
+				'Comune',
+				'CAP',
+				'Stato',
+				'Note',
+			],
+			';',
+			'"',
+			''
+		);
+		foreach ( $rows as $row ) {
+			if ( $template ) {
+				break;
+			}
+			fputcsv(
+				$stream,
+				[
+					(string) $row['first_name'],
+					(string) $row['last_name'],
+					(string) $row['email'],
+					(string) $row['phone'],
+					(string) ( $row['birth_date'] ?? '' ),
+					(string) $row['address'],
+					(string) $row['city'],
+					(string) $row['postal_code'],
+					(string) $row['status'],
+					(string) $row['notes'],
+				],
+				';',
+				'"',
+				''
+			);
+		}
+		fclose( $stream );
+		exit;
+	}
+
+	private function import_key( int $user ): string {
+		return 'bracelli_soci_import_' . $user;
+	}
+
+	private function report_key( int $user ): string {
+		return 'bracelli_soci_import_report_' . $user;
+	}
+
 	private function status_label( string $status ): string {
 		return match ( $status ) {
 			'active'    => __( 'Attivo', 'bracelli-club' ),
