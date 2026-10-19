@@ -139,7 +139,9 @@ final class MemberService {
 				'module'        => 'soci',
 				'resource_type' => 'member',
 				'resource_id'   => (string) $id,
-				'diff'          => [ 'status' => $status ],
+				'diff'          => [
+					'status' => $status,
+				],
 				'actor_id'      => $actor,
 			]
 		);
