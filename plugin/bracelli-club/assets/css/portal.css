@@ -746,3 +746,99 @@ body.bcp {
 	grid-column: 2;
 	font-size: 0.9rem;
 }
+
+
+/* Dashboard operativa della segreteria */
+.bcp-secretary-hero {
+	padding: clamp(20px, 3vw, 32px);
+	background: linear-gradient(135deg, var(--bcp-surface), var(--bcp-info-bg));
+	border-top: 3px solid var(--bcp-accent);
+}
+
+.bcp-secretary-hero > p:first-child {
+	margin-top: 0;
+	font-size: .78rem;
+	font-weight: 700;
+	letter-spacing: .12em;
+}
+
+.bcp-secretary-hero h2 {
+	margin: 8px 0 10px;
+	font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.bcp-secretary-hero > p:last-child {
+	max-width: 70ch;
+	margin-bottom: 0;
+}
+
+.bcp-secretary-metrics,
+.bcp-secretary-links {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.bcp-secretary-metric,
+.bcp-secretary-link {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+	min-width: 0;
+	margin: 0;
+}
+
+.bcp-secretary-metric {
+	border-top: 2px solid var(--bcp-accent);
+}
+
+.bcp-secretary-metric > p,
+.bcp-secretary-link > span {
+	margin: 0;
+}
+
+.bcp-secretary-metric__value {
+	font-size: clamp(1.8rem, 3vw, 2.35rem);
+	font-weight: 750;
+	line-height: 1.15;
+	font-variant-numeric: tabular-nums;
+}
+
+.bcp-secretary-link {
+	color: var(--bcp-text);
+	text-decoration: none;
+	transition: border-color .15s ease, transform .15s ease;
+}
+
+a.bcp-secretary-link:hover {
+	border-color: var(--bcp-accent);
+	transform: translateY(-2px);
+}
+
+.bcp-secretary-link:focus-visible {
+	outline: none;
+	box-shadow: var(--bcp-focus);
+}
+
+.bcp-secretary-link__title {
+	font-size: 1.05rem;
+	font-weight: 700;
+}
+
+.bcp-secretary-link .bcp-link,
+.bcp-secretary-link .bcp-badge {
+	margin-top: auto;
+}
+
+.bcp-secretary-link--planned {
+	background: var(--bcp-info-bg);
+	border-style: dashed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.bcp-secretary-link {
+		transition: none;
+	}
+}
