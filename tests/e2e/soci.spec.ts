@@ -99,7 +99,9 @@ test.describe.serial( 'Archivio soci', () => {
 			buffer: Buffer.from( csv ),
 		} );
 		await page.click( 'button:has-text("Carica e controlla")' );
-		await expect( page.locator( 'h1' ) ).toHaveText( 'Importa soci da CSV' );
+		await expect( page.locator( 'h1' ) ).toHaveText(
+			'Importa soci da CSV'
+		);
 		await expect( page.locator( 'body' ) ).toContainText( 'Anteprima CSV' );
 		await expect( page.locator( 'body' ) ).toContainText(
 			'Nessuna modifica è stata ancora salvata'
@@ -125,7 +127,9 @@ test.describe.serial( 'Archivio soci', () => {
 			.getByRole( 'button', { name: 'Esporta CSV' } )
 			.click();
 		const download = await downloadPromise;
-		expect( download.suggestedFilename() ).toMatch( /^bracelli-soci-.*\.csv$/ );
+		expect( download.suggestedFilename() ).toMatch(
+			/^bracelli-soci-.*\.csv$/
+		);
 		expect( errors ).toEqual( [] );
 	} );
 
