@@ -221,6 +221,27 @@ final class MemberService {
 	}
 
 	/**
+	 * Registra l'esportazione CSV senza memorizzare valori anagrafici.
+	 */
+	public function record_export( int $actor, int $count ): void {
+		if ( ! $this->can_manage( $actor ) ) {
+			return;
+		}
+		$this->audit->log(
+			'member.exported',
+			[
+				'module'        => 'soci',
+				'resource_type' => 'member_export',
+				'resource_id'   => 'csv',
+				'diff'          => [
+					'record_count' => max( 0, $count ),
+				],
+				'actor_id'      => $actor,
+			]
+		);
+	}
+
+	/**
 	 * Storico e relazioni sono accessibili solo a chi gestisce l'archivio.
 	 *
 	 * @return array<int, array<string, mixed>>
