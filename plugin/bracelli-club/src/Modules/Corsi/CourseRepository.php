@@ -52,6 +52,36 @@ final class CourseRepository {
 	}
 
 	/**
+	 * Tabella delle sale.
+	 */
+	public function rooms_table(): string {
+		return $this->db->prefix . 'bc_corsi_rooms';
+	}
+
+	/**
+	 * Sale ordinate per nome.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function rooms(): array {
+		$table = $this->rooms_table();
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- nome tabella interno, nessun input.
+		$rows = (array) $this->db->get_results( "SELECT * FROM {$table} ORDER BY name ASC, id ASC", ARRAY_A );
+		return array_map( [ $this, 'cast_room' ], $rows );
+	}
+
+	/**
+	 * @param int $id Sala.
+	 * @return array<string, mixed>|null
+	 */
+	public function find_room( int $id ): ?array {
+		$table = $this->rooms_table();
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		$row = $this->db->get_row( $this->db->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ), ARRAY_A );
+		return is_array( $row ) ? $this->cast_room( $row ) : null;
+	}
+
+	/**
 	 * Tutti i corsi, ordinati per sezione e nome.
 	 *
 	 * @return array<int, array<string, mixed>>
@@ -90,7 +120,7 @@ final class CourseRepository {
 	/**
 	 * Orari con i dati del corso.
 	 *
-	 * @param array{status?: string, teacher_id?: int, course_id?: int, weekday?: int, section?: string} $filters Filtri già validati.
+	 * @param array{status?: string, teacher_id?: int, course_id?: int, weekday?: int, section?: string, room_id?: int} $filters Filtri già validati.
 	 * @return array<int, array<string, mixed>>
 	 */
 	public function slots( array $filters = [] ): array {
@@ -116,11 +146,16 @@ final class CourseRepository {
 			$where[]  = 'c.section = %s';
 			$params[] = $filters['section'];
 		}
+		if ( ! empty( $filters['room_id'] ) ) {
+			$where[]  = 's.room_id = %d';
+			$params[] = (int) $filters['room_id'];
+		}
 		$slots     = $this->slots_table();
 		$courses   = $this->courses_table();
+		$rooms     = $this->rooms_table();
 		$where_sql = implode( ' AND ', $where );
-		$sql       = "SELECT s.*, c.name AS course_name, c.group_label, c.section, c.status AS course_status
-			FROM {$slots} s JOIN {$courses} c ON c.id = s.course_id
+		$sql       = "SELECT s.*, c.name AS course_name, c.group_label, c.section, c.color, c.status AS course_status, r.name AS room_name
+			FROM {$slots} s JOIN {$courses} c ON c.id = s.course_id LEFT JOIN {$rooms} r ON r.id = s.room_id
 			WHERE {$where_sql} ORDER BY s.weekday ASC, s.start_time ASC, c.section ASC, c.name ASC, s.id ASC";
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- clausole da campi fissi, valori come segnaposto.
 		$rows = (array) $this->db->get_results( [] === $params ? $sql : $this->db->prepare( $sql, $params ), ARRAY_A );
@@ -135,8 +170,9 @@ final class CourseRepository {
 	public function find_slot( int $id ): ?array {
 		$slots   = $this->slots_table();
 		$courses = $this->courses_table();
+		$rooms   = $this->rooms_table();
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
-		$row = $this->db->get_row( $this->db->prepare( "SELECT s.*, c.name AS course_name, c.group_label, c.section, c.status AS course_status FROM {$slots} s JOIN {$courses} c ON c.id = s.course_id WHERE s.id = %d", $id ), ARRAY_A );
+		$row = $this->db->get_row( $this->db->prepare( "SELECT s.*, c.name AS course_name, c.group_label, c.section, c.color, c.status AS course_status, r.name AS room_name FROM {$slots} s JOIN {$courses} c ON c.id = s.course_id LEFT JOIN {$rooms} r ON r.id = s.room_id WHERE s.id = %d", $id ), ARRAY_A );
 		return is_array( $row ) ? $this->cast_slot( $row ) : null;
 	}
 
@@ -266,7 +302,23 @@ final class CourseRepository {
 	 * @return array<string, mixed>
 	 */
 	private function cast_course( array $row ): array {
-		$row['id'] = (int) $row['id'];
+		foreach ( [ 'id', 'manual', 'created_by', 'updated_by' ] as $int ) {
+			$row[ $int ] = (int) ( $row[ $int ] ?? 0 );
+		}
+		foreach ( [ 'description', 'level', 'color', 'notes' ] as $text ) {
+			$row[ $text ] = (string) ( $row[ $text ] ?? '' );
+		}
+		return $row;
+	}
+
+	/**
+	 * @param array<string, mixed> $row Riga.
+	 * @return array<string, mixed>
+	 */
+	private function cast_room( array $row ): array {
+		foreach ( [ 'id', 'created_by', 'updated_by' ] as $int ) {
+			$row[ $int ] = (int) ( $row[ $int ] ?? 0 );
+		}
 		return $row;
 	}
 
@@ -275,9 +327,10 @@ final class CourseRepository {
 	 * @return array<string, mixed>
 	 */
 	private function cast_slot( array $row ): array {
-		foreach ( [ 'id', 'course_id', 'weekday', 'teacher_id', 'manual', 'created_by', 'updated_by', 'cancelled_by' ] as $int ) {
+		foreach ( [ 'id', 'course_id', 'weekday', 'teacher_id', 'manual', 'created_by', 'updated_by', 'cancelled_by', 'room_id' ] as $int ) {
 			$row[ $int ] = (int) ( $row[ $int ] ?? 0 );
 		}
+		$row['room_name'] = (string) ( $row['room_name'] ?? '' );
 		return $row;
 	}
 }

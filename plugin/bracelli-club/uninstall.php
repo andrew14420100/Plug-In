@@ -25,6 +25,7 @@ $wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}bc_turni_attendance`" );
 $wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}bc_corsi_courses`" );
 $wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}bc_corsi_slots`" );
 $wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}bc_corsi_attendance`" );
+$wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}bc_corsi_rooms`" );
 // phpcs:enable
 
 foreach ( array( 'bracelli_club_settings', 'bracelli_club_modules', 'bracelli_club_schema', 'bracelli_club_last_migration', 'bracelli_club_errors', 'bracelli_club_installed_at', 'bracelli_club_portal_pretty' ) as $bracelli_club_option ) {

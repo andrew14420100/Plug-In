@@ -50,9 +50,12 @@ final class CorsiModule implements ModuleInterface {
 	public function boot( Plugin $plugin ): void {
 		global $wpdb;
 		$repo           = new CourseRepository( $wpdb );
-		$this->service  = new CourseService( $repo, $plugin->audit );
+		$rooms          = new RoomService( $repo, $plugin->audit );
+		$this->service  = new CourseService( $repo, $plugin->audit, null, $rooms );
+		$catalog        = new CatalogService( $repo, $plugin->audit, $rooms );
 		$this->importer = new CourseImporter( $repo, $plugin->audit );
-		Sections::add( new CorsiSection( $this->service ) );
+		Sections::add( new CorsiSection( $this->service, $catalog ) );
+		Sections::add( new CatalogoSection( $catalog, $rooms, $this->service ) );
 
 		add_action( 'admin_menu', [ $this, 'menu' ] );
 		add_action( 'admin_post_' . self::ACTION_PREVIEW, [ $this, 'handle_preview' ] );
@@ -210,7 +213,7 @@ final class CorsiModule implements ModuleInterface {
 		echo '<input type="hidden" name="action" value="' . esc_attr( self::ACTION_PREVIEW ) . '">';
 		wp_nonce_field( self::ACTION_PREVIEW );
 		echo '<p><label for="bc-csv">' . esc_html__( 'File CSV (colonne: chiave; sezione; corso; gruppo; giorno; inizio; fine; insegnante; sede; note)', 'bracelli-club' ) . '</label><br><input id="bc-csv" type="file" name="bc_csv" accept=".csv,text/csv" required></p>';
-		echo '<p class="bc-muted">' . esc_html__( 'Una riga per ogni orario settimanale. La colonna "insegnante" è solo un nome indicato nei dati: gli account degli insegnanti si collegano agli orari dall\'area riservata (Orari dei corsi), mai in automatico.', 'bracelli-club' ) . '</p>';
+		echo '<p class="bc-muted">' . esc_html__( 'Una riga per ogni orario settimanale. La colonna "insegnante" è solo un nome indicato nei dati: gli account degli insegnanti si collegano agli orari dall\'area riservata (Corsi e orari), mai in automatico.', 'bracelli-club' ) . '</p>';
 		echo '<p><button type="submit" class="bc-button bc-button--primary">' . esc_html__( 'Mostra anteprima', 'bracelli-club' ) . '</button></p></form>';
 		Layout::close();
 	}
@@ -226,6 +229,7 @@ final class CorsiModule implements ModuleInterface {
 			[ __( 'Corsi da creare', 'bracelli-club' ), $c['courses_create'] ],
 			[ __( 'Corsi da aggiornare', 'bracelli-club' ), $c['courses_update'] ],
 			[ __( 'Corsi invariati', 'bracelli-club' ), $c['courses_unchanged'] ],
+			[ __( 'Corsi modificati o archiviati dallo staff (non sovrascritti)', 'bracelli-club' ), $c['courses_conflict'] ?? 0 ],
 			[ __( 'Orari da creare', 'bracelli-club' ), $c['slots_create'] ],
 			[ __( 'Orari da aggiornare', 'bracelli-club' ), $c['slots_update'] ],
 			[ __( 'Orari invariati', 'bracelli-club' ), $c['slots_unchanged'] ],
@@ -243,6 +247,14 @@ final class CorsiModule implements ModuleInterface {
 			foreach ( $plan['anomalies'] as $anomaly ) {
 				/* translators: 1: numero di riga, 2: messaggio. */
 				echo '<li>' . esc_html( sprintf( __( 'Riga %1$s: %2$s', 'bracelli-club' ), $anomaly['line'], $anomaly['message'] ) ) . '</li>';
+			}
+			echo '</ul>';
+		}
+		$kept = array_filter( $plan['courses'], static fn( array $c ): bool => 'conflict' === $c['action'] );
+		if ( [] !== $kept ) {
+			echo '<h3>' . esc_html__( 'Corsi non sovrascritti', 'bracelli-club' ) . '</h3><ul>';
+			foreach ( $kept as $course ) {
+				echo '<li>' . esc_html( $course['ext_key'] . ': ' . ( $course['reason'] ?? '' ) ) . '</li>';
 			}
 			echo '</ul>';
 		}

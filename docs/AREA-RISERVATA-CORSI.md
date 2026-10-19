@@ -92,7 +92,7 @@ Prova su un sito usa e getta:
 - **Ginnastica funzionale – Flowing Academy:** importate le 10 fasce orarie indicate; da confermare se ogni fascia ha un insegnante.
 - **Flamenco e Hip Hop:** orari letti da testo molto piccolo, da confermare.
 - **«Giada» e «Manuel»** potrebbero essere nomi di insegnanti: non collegati ad alcun account.
-- **Insegnanti:** nei volantini non compare alcun insegnante. Tutti gli orari sono «Da assegnare»: la segreteria collega gli account da **Orari dei corsi**.
+- **Insegnanti:** nei volantini non compare alcun insegnante. Tutti gli orari sono «Da assegnare»: la segreteria collega gli account da **Corsi e orari**.
 - **Non importati perché non sono corsi:** affitto campo calcetto, affitto sale per feste. La nota sui corsi per ragazzi con Sindrome di Down o altre speciali abilità resta informativa.
 
 ## 6. Prova in LocalWP (o nell'installazione locale di prova)
@@ -110,7 +110,7 @@ Prova su un sito usa e getta:
 
 5. **Bracelli Club → Area riservata:** indica l'indirizzo esatto e mostra un'anteprima del pulsante.
 6. Prova:
-   - la segreteria assegna `insegnante1` a un corso di oggi (Orari dei corsi → Modifica → «Assegna questo insegnante anche agli altri orari attivi del corso»);
+   - la segreteria assegna `insegnante1` a un corso di oggi (Corsi e orari → Modifica → «Assegna questo insegnante anche agli altri orari attivi del corso»);
    - l'insegnante accede **con l'email** e preme Presente;
    - la segreteria vede la presenza in **Presenze insegnanti**;
    - il socio vede solo il calendario.

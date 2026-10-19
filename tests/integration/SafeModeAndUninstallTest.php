@@ -66,7 +66,7 @@ final class SafeModeAndUninstallTest extends TestCase {
 		$this->assertSame( '', get_user_meta( $user, 'bracelli_club_prefs', true ) );
 		$this->assertNull( get_role( Roles::DIPENDENTE ) );
 		$this->assertNull( get_role( Roles::SOCIO ) );
-		$this->assertCount( 7, $queries );
+		$this->assertCount( 8, $queries );
 		global $wpdb;
 		$this->assertStringContainsString( $wpdb->prefix . 'bc_audit_events', $queries[0] );
 		$this->assertStringContainsString( $wpdb->prefix . 'bc_turni_shifts', $queries[2] );

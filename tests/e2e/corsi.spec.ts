@@ -77,7 +77,7 @@ test.describe.serial( 'Corsi e presenze insegnanti', () => {
 		await expect( page.locator( 'h1' ) ).toHaveText(
 			'Presenze degli insegnanti'
 		);
-		await page.click( 'a.bcp-tab:has-text("Orari dei corsi")' );
+		await page.click( 'a.bcp-tab:has-text("Corsi e orari")' );
 		const course = page.locator( 'article.bcp-course', {
 			hasText: 'Corso Prova Mattino',
 		} );
@@ -97,7 +97,7 @@ test.describe.serial( 'Corsi e presenze insegnanti', () => {
 			'Orario aggiornato'
 		);
 		await expect( page.locator( '.bcp-history li' ) ).toHaveCount( 1 );
-		await page.click( 'a.bcp-tab:has-text("Orari dei corsi")' );
+		await page.click( 'a.bcp-tab:has-text("Corsi e orari")' );
 		await expect(
 			page
 				.locator( 'article.bcp-course', {

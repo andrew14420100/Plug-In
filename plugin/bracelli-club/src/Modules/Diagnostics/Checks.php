@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Bracelli\Club\Modules\Diagnostics;
 
+use Bracelli\Club\Core\Permissions\Roles;
 use Bracelli\Club\Core\Modules\ModuleManager;
 use Bracelli\Club\Plugin;
 
@@ -168,6 +169,24 @@ final class Checks {
 			[] === $problems ? self::OK : self::ERROR,
 			[] === $problems ? __( 'nessun errore', 'bracelli-club' ) : __( 'con problemi:', 'bracelli-club' ) . ' ' . implode( ', ', $problems ),
 			''
+		);
+		$legacy   = null === get_role( Roles::GESTORE_CORSI ) ? -1 : count(
+			get_users(
+				[
+					'role'   => Roles::GESTORE_CORSI,
+					'fields' => 'ID',
+				]
+			)
+		);
+		$checks[] = $this->item(
+			'legacy_roles',
+			__( 'Ruolo "Gestore corsi" (non più usato)', 'bracelli-club' ),
+			$legacy > 0 ? self::WARNING : self::INFO,
+			-1 === $legacy
+				? __( 'non presente', 'bracelli-club' )
+				/* translators: %d: numero di utenti. */
+				: sprintf( _n( '%d utente', '%d utenti', $legacy, 'bracelli-club' ), $legacy ),
+			$legacy > 0 ? __( 'Questi utenti conservano i loro permessi. Puoi convertirli uno alla volta da Bracelli Club → Permessi.', 'bracelli-club' ) : ''
 		);
 		$checks[] = $this->item(
 			'safe_mode',

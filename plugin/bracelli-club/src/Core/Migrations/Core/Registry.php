@@ -30,6 +30,7 @@ final class Registry {
 			new M2026100005CreateCourseTables(),
 			new M2026100006GrantCourseCapabilities(),
 			new M2026100007AddSlotAssignedFrom(),
+			new M2026100008CreateCatalogAndRooms(),
 		];
 	}
 }

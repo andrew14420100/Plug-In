@@ -111,6 +111,10 @@ final class CourseImporter {
 				$anomalies[] = $this->anomaly( $row, 'Chiave o nome del corso mancante: riga saltata.' );
 				continue;
 			}
+			if ( str_starts_with( $key, CatalogService::MANUAL_PREFIX ) ) {
+				$anomalies[] = $this->anomaly( $row, sprintf( 'La chiave "%s" è riservata ai corsi creati dall\'area riservata: riga saltata.', $key ) );
+				continue;
+			}
 			$course = [
 				'ext_key'     => mb_substr( $key, 0, 100 ),
 				'section'     => mb_substr( $row['sezione'], 0, 120 ),
@@ -172,19 +176,28 @@ final class CourseImporter {
 
 		$existing_courses = $this->repo->courses_by_key();
 		$existing_slots   = $this->repo->slots_by_key();
-		$counts           = array_fill_keys( [ 'courses_create', 'courses_update', 'courses_unchanged', 'slots_create', 'slots_update', 'slots_unchanged', 'slots_conflict', 'untouched', 'anomalies' ], 0 );
+		$counts           = array_fill_keys( [ 'courses_create', 'courses_update', 'courses_unchanged', 'courses_conflict', 'slots_create', 'slots_update', 'slots_unchanged', 'slots_conflict', 'untouched', 'anomalies' ], 0 );
 
 		$course_plan = [];
 		foreach ( $courses as $key => $course ) {
 			$course['notes'] = implode( ' · ', $course['notes'] );
 			$current         = $existing_courses[ $key ] ?? null;
+			$reason          = '';
 			if ( null === $current ) {
 				$action = 'create';
 			} else {
 				$action = ( $current['section'] === $course['section'] && $current['name'] === $course['name'] && $current['group_label'] === $course['group_label'] && (string) $current['notes'] === $course['notes'] && 'active' === $current['status'] ) ? 'unchanged' : 'update';
+				// Un corso modificato o archiviato dallo staff non viene sovrascritto né riattivato.
+				if ( 'update' === $action && ( 1 === $current['manual'] || 'archived' === $current['status'] ) ) {
+					$action = 'conflict';
+					$reason = 'archived' === $current['status'] ? 'Corso archiviato dallo staff: non riattivato.' : 'Corso modificato dallo staff: non sovrascritto.';
+				}
 			}
 			++$counts[ 'courses_' . $action ];
-			$course_plan[] = $course + [ 'action' => $action ];
+			$course_plan[] = $course + [
+				'action' => $action,
+				'reason' => $reason,
+			];
 		}
 
 		$slot_plan = [];
