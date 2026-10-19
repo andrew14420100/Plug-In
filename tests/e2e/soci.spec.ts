@@ -132,5 +132,4 @@ test.describe.serial( 'Archivio soci', () => {
 		);
 		expect( errors ).toEqual( [] );
 	} );
-
 } );
