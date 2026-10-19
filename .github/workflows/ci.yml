@@ -177,7 +177,14 @@ jobs:
         run: npm run test:e2e
       - name: Nessun avviso PHP durante i test
         run: |
-          if [ -s /tmp/bracelli-e2e/wp-content/debug.log ]; then cat /tmp/bracelli-e2e/wp-content/debug.log; exit 1; fi
+          LOG=/tmp/bracelli-e2e/wp-content/debug.log
+          if [ -s "$LOG" ]; then
+            # Gli avvisi interni di WP-CLI (librerie dentro il suo phar) non riguardano il plugin:
+            # qualsiasi altra riga, compresi gli avvisi del plugin, fa fallire il controllo.
+            grep -v 'in phar:///usr/local/bin/wp-cli/' "$LOG" > /tmp/plugin-notices.log || true
+            if [ -s /tmp/plugin-notices.log ]; then cat /tmp/plugin-notices.log; exit 1; fi
+            echo "Solo avvisi interni di WP-CLI ($(wc -l < "$LOG") righe), ignorati."
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
