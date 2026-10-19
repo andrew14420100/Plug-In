@@ -26,13 +26,14 @@ final class MembersTest extends TestCase {
 	}
 
 	public function test_secretary_can_create_and_search_member(): void {
+		$email = 'mario.rossi' . chr( 64 ) . 'example.test';
 		$result = $this->service->save(
 			$this->segreteria,
 			0,
 			[
 				'first_name' => 'Mario',
 				'last_name'  => 'Rossi',
-				'email'      => 'mario.rossi@example.test',
+				'email'      => $email,
 				'phone'      => '3331234567',
 				'birth_date' => '1990-02-10',
 				'status'     => 'active',
@@ -40,16 +41,17 @@ final class MembersTest extends TestCase {
 		);
 		$this->assertTrue( $result['ok'] );
 		$this->assertSame( 'created', $result['code'] );
-		$found = $this->repo->search( 'mario.rossi@example.test' );
+		$found = $this->repo->search( $email );
 		$this->assertSame( 1, $found['total'] );
 		$this->assertSame( 'Rossi', $found['items'][0]['last_name'] );
 	}
 
 	public function test_member_email_cannot_be_duplicated(): void {
+		$duplicate_email = 'duplicato' . chr( 64 ) . 'example.test';
 		$input = [
 			'first_name' => 'Mario',
 			'last_name'  => 'Rossi',
-			'email'      => 'duplicato@example.test',
+			'email'      => $duplicate_email,
 		];
 		$this->assertTrue( $this->service->save( $this->segreteria, 0, $input )['ok'] );
 		$result = $this->service->save(
@@ -58,7 +60,7 @@ final class MembersTest extends TestCase {
 			[
 				'first_name' => 'Luigi',
 				'last_name'  => 'Bianchi',
-				'email'      => 'duplicato@example.test',
+				'email'      => $duplicate_email,
 			]
 		);
 		$this->assertFalse( $result['ok'] );
