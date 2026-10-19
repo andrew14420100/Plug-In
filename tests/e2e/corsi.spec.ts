@@ -75,8 +75,14 @@ test.describe.serial( 'Corsi e presenze insegnanti', () => {
 		const errors = collectErrors( page );
 		await portalLogin( page, USERS.staff.user, USERS.staff.pass );
 		await expect( page.locator( 'h1' ) ).toHaveText(
-			'Presenze degli insegnanti'
+			'Panoramica segreteria'
 		);
+		await expect( page.locator( '.bcp-secretary-metric' ) ).toHaveCount(
+			5
+		);
+		await expect(
+			page.locator( '.bcp-secretary-links' ).first()
+		).toContainText( 'Corsi e orari' );
 		await page.click( 'a.bcp-tab:has-text("Corsi e orari")' );
 		const course = page.locator( 'article.bcp-course', {
 			hasText: 'Corso Prova Mattino',
