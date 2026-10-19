@@ -90,4 +90,72 @@ final class MembersTest extends TestCase {
 		$this->assertTrue( $archived['ok'] );
 		$this->assertSame( 'archived', $this->repo->find( $created['id'] )['status'] );
 	}
+
+	public function test_family_relations_and_member_history_are_recorded(): void {
+		$guardian = $this->service->save(
+			$this->segreteria,
+			0,
+			[
+				'first_name' => 'Giulia',
+				'last_name'  => 'Verdi',
+				'email'      => 'giulia.verdi@example.test',
+			]
+		);
+		$this->assertTrue( $guardian['ok'] );
+		$member = $this->service->save(
+			$this->segreteria,
+			0,
+			[
+				'first_name'          => 'Luca',
+				'last_name'           => 'Verdi',
+				'birth_date'          => '2014-05-20',
+				'status'              => 'active',
+				'guardian_ids_present' => '1',
+				'guardian_ids'        => [ $guardian['id'] ],
+			]
+		);
+		$this->assertTrue( $member['ok'] );
+		$this->assertSame( [ $guardian['id'] ], $this->repo->guardian_ids( $member['id'] ) );
+		$this->assertSame( $member['id'], $this->repo->dependents( $guardian['id'] )[0]['id'] );
+		$this->assertSame( $guardian['id'], $this->repo->guardians( $member['id'] )[0]['id'] );
+
+		$history = $this->repo->history( $member['id'] );
+		$this->assertNotEmpty( $history );
+		$this->assertContains( 'created', array_column( $history, 'action' ) );
+
+		// Non si possono creare cicli: un figlio non può diventare tutore del proprio tutore.
+		$result = $this->service->save(
+			$this->segreteria,
+			$guardian['id'],
+			[
+				'first_name'          => 'Giulia',
+				'last_name'           => 'Verdi',
+				'email'               => 'giulia.verdi@example.test',
+				'status'              => 'active',
+				'guardian_ids_present' => '1',
+				'guardian_ids'        => [ $member['id'] ],
+			]
+		);
+		$this->assertFalse( $result['ok'] );
+		$this->assertArrayHasKey( 'guardian_ids', $result['errors'] );
+	}
+
+	public function test_possible_duplicate_search_matches_name_and_birth_date(): void {
+		$created = $this->service->save(
+			$this->segreteria,
+			0,
+			[
+				'first_name' => 'Sara',
+				'last_name'  => 'Bianchi',
+				'email'      => 'sara.bianchi@example.test',
+				'birth_date' => '2004-07-14',
+			]
+		);
+		$this->assertTrue( $created['ok'] );
+		$matches = $this->repo->potential_duplicates( 'Sara', 'Bianchi', '2004-07-14' );
+		$this->assertCount( 1, $matches );
+		$this->assertSame( $created['id'], $matches[0]['id'] );
+	}
+
+
 }
