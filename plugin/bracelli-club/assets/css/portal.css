@@ -757,9 +757,9 @@ body.bcp {
 
 .bcp-secretary-hero > p:first-child {
 	margin-top: 0;
-	font-size: .78rem;
+	font-size: 0.78rem;
 	font-weight: 700;
-	letter-spacing: .12em;
+	letter-spacing: 0.12em;
 }
 
 .bcp-secretary-hero h2 {
@@ -809,7 +809,7 @@ body.bcp {
 .bcp-secretary-link {
 	color: var(--bcp-text);
 	text-decoration: none;
-	transition: border-color .15s ease, transform .15s ease;
+	transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
 a.bcp-secretary-link:hover {
@@ -838,6 +838,7 @@ a.bcp-secretary-link:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
 	.bcp-secretary-link {
 		transition: none;
 	}
