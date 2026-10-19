@@ -56,6 +56,7 @@ final class CorsiModule implements ModuleInterface {
 		$this->importer = new CourseImporter( $repo, $plugin->audit );
 		Sections::add( new CorsiSection( $this->service, $catalog ) );
 		Sections::add( new CatalogoSection( $catalog, $rooms, $this->service ) );
+		Sections::add( new SegreteriaSection( $this->service ) );
 
 		add_action( 'admin_menu', [ $this, 'menu' ] );
 		add_action( 'admin_post_' . self::ACTION_PREVIEW, [ $this, 'handle_preview' ] );
