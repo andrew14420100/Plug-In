@@ -40,7 +40,9 @@ final class SegreteriaSection implements SectionInterface {
 	/** {@inheritDoc} */
 	public function views( int $user ): array {
 		return $this->courses->can_manage( $user )
-			? [ 'segreteria' => __( 'Panoramica segreteria', 'bracelli-club' ) ]
+			? [
+				'segreteria' => __( 'Panoramica segreteria', 'bracelli-club' ),
+			]
 			: [];
 	}
 
@@ -85,13 +87,13 @@ final class SegreteriaSection implements SectionInterface {
 				static fn( array $course ): bool => 'active' === ( $course['status'] ?? '' )
 			)
 		);
-		$active_slots = array_values(
+		$active_slots    = array_values(
 			array_filter(
 				$slots,
 				static fn( array $slot ): bool => 'active' === ( $slot['course_status'] ?? '' )
 			)
 		);
-		$active_rooms = count(
+		$active_rooms   = count(
 			array_filter(
 				$rooms,
 				static fn( array $room ): bool => 'active' === ( $room['status'] ?? '' )
@@ -103,7 +105,7 @@ final class SegreteriaSection implements SectionInterface {
 				static fn( array $slot ): bool => (int) ( $slot['teacher_id'] ?? 0 ) < 1
 			)
 		);
-		$without_room = count(
+		$without_room    = count(
 			array_filter(
 				$active_slots,
 				static fn( array $slot ): bool => (int) ( $slot['room_id'] ?? 0 ) < 1
@@ -117,11 +119,7 @@ final class SegreteriaSection implements SectionInterface {
 		echo '</p>';
 		echo '<h2>' . esc_html__( 'Benvenuto in segreteria', 'bracelli-club' ) . '</h2>';
 		echo '<p>';
-		echo esc_html__(
-			'Da qui puoi raggiungere le attività quotidiane e controllare i dati operativi disponibili. '
-			. 'Le sezioni non ancora sviluppate sono indicate chiaramente.',
-			'bracelli-club'
-		);
+		echo esc_html__( 'Da qui puoi raggiungere le attività quotidiane e controllare i dati operativi disponibili. Le sezioni non ancora sviluppate sono indicate chiaramente.', 'bracelli-club' );
 		echo '</p></section>';
 
 		echo '<h2>' . esc_html__( 'Situazione corsi', 'bracelli-club' ) . '</h2>';
@@ -171,7 +169,7 @@ final class SegreteriaSection implements SectionInterface {
 		);
 		$this->quick_link(
 			'presenze',
-			__( 'Presenze insegnanti', 'bracelli-club' ),
+			__( 'Presenze degli insegnanti', 'bracelli-club' ),
 			__( 'Controlla le presenze registrate dagli insegnanti.', 'bracelli-club' )
 		);
 		$this->quick_link(
