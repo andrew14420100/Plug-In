@@ -186,9 +186,10 @@ final class SegreteriaSection implements SectionInterface {
 
 		echo '<h2>' . esc_html__( 'Altre aree della segreteria', 'bracelli-club' ) . '</h2>';
 		echo '<div class="bcp-secretary-links">';
-		$this->planned_card(
+		$this->quick_link(
+			'soci',
 			__( 'Archivio soci', 'bracelli-club' ),
-			__( 'Anagrafiche, famiglie, contatti e storico.', 'bracelli-club' )
+			__( 'Cerca, crea, aggiorna e archivia le anagrafiche.', 'bracelli-club' )
 		);
 		$this->planned_card(
 			__( 'Iscrizioni e presenze dei partecipanti', 'bracelli-club' ),
