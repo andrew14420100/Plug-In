@@ -61,6 +61,7 @@ final class M2026100009CreateMembersTable implements MigrationInterface {
 			) {$db->get_charset_collate()};"
 		);
 		if ( $table !== $db->get_var( $db->prepare( 'SHOW TABLES LIKE %s', $db->esc_like( $table ) ) ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- messaggio interno; quando viene mostrato è escapato.
 			throw new \RuntimeException( 'Creazione tabella non riuscita: ' . $table );
 		}
 	}
