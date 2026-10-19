@@ -19,6 +19,10 @@ final class ActivationTest extends TestCase {
 		}
 		foreach ( Roles::definitions() as $slug => $definition ) {
 			$role = get_role( $slug );
+			if ( ! empty( $definition['legacy'] ) ) {
+				$this->assertNull( $role, $slug . ': un ruolo non più usato non si crea sulle nuove installazioni.' );
+				continue;
+			}
 			$this->assertNotNull( $role, $slug );
 			$this->assertTrue( $role->has_cap( 'read' ) );
 			foreach ( $definition['caps'] as $cap ) {

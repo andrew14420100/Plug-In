@@ -4,6 +4,21 @@ Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it/1.1.0/); ver
 
 ## [Non rilasciato]
 
+### Modificato — Fasi nella dashboard (plugin 0.4.1; pacchetto di collaudo 0.1.11, non rilasciato)
+- Il widget «Aree gestionali» (vecchie fasi 2–6 con «Non ancora disponibile») diventa «Avanzamento del progetto»: fasi 0–4 del modulo Corsi nell'ordine del piano attuale, con stato reale (Completata / In corso / Pianificata, sempre in testo e simbolo oltre al colore) e indicatore «N di 5 fasi completate»; le altre aree del gestionale compaiono come «Non ancora avviata». Fonte unica: `src/Modules/Dashboard/Roadmap.php`.
+- Stati della 0.4.1: Fase 0 completata (CI verde); Fase 1 in corso (sviluppata, in collaudo); Fasi 2–4 pianificate. Un test verifica che gli stati corrispondano alle funzioni presenti nel codice.
+- I sorgenti React includono ora le modifiche dell'interfaccia 0.1.5 (logo ufficiale quando il pacchetto lo fornisce, testi di benvenuto e del menu WordPress, selettori di tema e tavolozza): il pacchetto con la grafica 0.1.5 non usa più un bundle senza sorgenti. Testi di benvenuto aggiornati (non dicono più che i corsi non sono gestiti).
+- Diagnostica: tolto il riferimento obsoleto alla «Fase 1» nel controllo WP-Cron.
+- Test: il ruolo legacy «Gestore corsi» non deve esistere sulle nuove installazioni (correzione del test di attivazione emersa in CI).
+
+### Aggiunto — Corsi, fase 1: catalogo e sale (plugin 0.4.0; pacchetto di collaudo 0.1.10, non rilasciato)
+- Catalogo nell'area riservata: nuovo corso, modifica con storico, archiviazione e ripristino (nulla si elimina), duplicazione con orari «da confermare»; schede con descrizione, livello e colore; ricerca e filtri per disciplina e stato nella scheda «Corsi e orari».
+- Sale: elenco gestito dalla segreteria (nessuna sala precaricata o assegnata in automatico), sala per orario e per tutto il corso, blocco sul server delle sovrapposizioni nella stessa sala e fascia; il vecchio testo «sede» resta visibile finché non c'è una sala.
+- Importazione CSV: non sovrascrive né riattiva i corsi modificati o archiviati dallo staff; chiavi `manuale-…` riservate.
+- Ruolo «Gestore corsi» non più creato né assegnabile; chi lo ha conserva i permessi; conversione in Segreteria solo con conferma dell'amministratore (pagina Permessi) e conteggio in Diagnostica.
+- Migrazione `2026_10_0008` solo additiva; tabella `bc_corsi_rooms` eliminata solo con il flag di disinstallazione.
+- Test: 16 di integrazione (`CatalogTest`) e 5 end-to-end (`sale-catalogo.spec.ts`). Documento `docs/CORSI-FASE-1-CATALOGO-SALE.md`.
+
 ### Audit WordPress.org (plugin 0.3.1, candidato locale, non rilasciato)
 - Sicurezza: l'insegnante non registra più lezioni precedenti alla propria assegnazione all'orario (nuova colonna `assigned_from`, migrazione `2026_10_0007`) né modifica la registrazione di un collega; il quadro della segreteria mostra chi ha registrato.
 - Sicurezza: il dipendente registra i turni solo fino a 30 giorni prima; solo un amministratore (`manage_options`) attiva «Elimina tutti i dati alla disinstallazione»; le migrazioni da `admin_init` partono solo per gli amministratori (non più da `admin-ajax.php`/`admin-post.php` anonimi).

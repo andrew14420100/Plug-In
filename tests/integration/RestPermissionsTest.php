@@ -82,8 +82,9 @@ final class RestPermissionsTest extends TestCase {
 		$this->assertSame( 'admin', $data['context'] );
 		$widgets = array_column( $data['widgets'], 'data', 'id' );
 		$this->assertEqualsCanonicalizing( [ 'welcome', 'favorites', 'areas', 'modules', 'health', 'activity' ], array_keys( $widgets ) );
-		foreach ( $widgets['areas']['items'] as $area ) {
-			$this->assertSame( [ 'id', 'label', 'phase' ], array_keys( $area ), 'Le aree future non espongono contatori.' );
+		$this->assertSame( [ 'phases', 'completed', 'total', 'areas', 'note' ], array_keys( $widgets['areas'] ) );
+		foreach ( $widgets['areas']['areas'] as $area ) {
+			$this->assertSame( [ 'id', 'label', 'status' ], array_keys( $area ), 'Le aree non avviate non espongono contatori.' );
 		}
 		$this->assertSame( count( $this->plugin->modules->manifests() ), array_sum( $widgets['modules']['counts'] ) );
 	}

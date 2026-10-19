@@ -419,7 +419,7 @@ final class CorsiTest extends TestCase {
 		wp_set_current_user( $this->segreteria );
 		[ $html ] = $this->portal();
 		$this->assertStringContainsString( 'Presenze degli insegnanti', $html );
-		$this->assertStringContainsString( 'Orari dei corsi', $html );
+		$this->assertStringContainsString( 'Corsi e orari', $html );
 		$this->assertStringNotContainsString( 'Le mie lezioni', $html );
 	}
 

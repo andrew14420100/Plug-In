@@ -28,9 +28,11 @@ final class CorsiSection implements SectionInterface {
 	private Portal $p;
 
 	/**
-	 * @param CourseService $service Corsi.
+	 * @param CourseService       $service Corsi.
+	 * @param CatalogService|null $catalog Catalogo (elenco filtrato dei corsi); predefinito: creato sugli stessi dati.
 	 */
-	public function __construct( private CourseService $service ) {
+	public function __construct( private CourseService $service, private ?CatalogService $catalog = null ) {
+		$this->catalog ??= new CatalogService( $service->repo(), $service->audit(), $service->rooms() );
 	}
 
 	/**
@@ -55,7 +57,7 @@ final class CorsiSection implements SectionInterface {
 		if ( $this->service->can_manage( $user ) ) {
 			$views += [
 				'presenze'       => __( 'Presenze degli insegnanti', 'bracelli-club' ),
-				'orari'          => __( 'Orari dei corsi', 'bracelli-club' ),
+				'orari'          => __( 'Corsi e orari', 'bracelli-club' ),
 				'orario'         => __( 'Modifica orario', 'bracelli-club' ),
 				'nuovo-orario'   => __( 'Nuovo orario', 'bracelli-club' ),
 				'annulla-orario' => __( 'Annulla orario', 'bracelli-club' ),
@@ -77,7 +79,7 @@ final class CorsiSection implements SectionInterface {
 		$tabs = [];
 		if ( $this->service->can_manage( $user ) ) {
 			$tabs['presenze'] = __( 'Presenze insegnanti', 'bracelli-club' );
-			$tabs['orari']    = __( 'Orari dei corsi', 'bracelli-club' );
+			$tabs['orari']    = __( 'Corsi e orari', 'bracelli-club' );
 		}
 		if ( $this->service->can_teach( $user ) ) {
 			$tabs['lezioni'] = __( 'Le mie lezioni', 'bracelli-club' );
@@ -99,13 +101,14 @@ final class CorsiSection implements SectionInterface {
 	 * {@inheritDoc}
 	 */
 	public function messages(): array {
-		return [
+		return CatalogoSection::all_messages() + [
 			'attendance_saved'  => [ 'success', __( 'Presenza salvata.', 'bracelli-club' ) ],
 			'slot_updated'      => [ 'success', __( 'Orario aggiornato. La modifica è nello storico.', 'bracelli-club' ) ],
 			'slot_created'      => [ 'success', __( 'Orario aggiunto.', 'bracelli-club' ) ],
 			'slot_cancelled_ok' => [ 'success', __( 'Orario annullato. Resta visibile nello storico.', 'bracelli-club' ) ],
 			'not_found'         => [ 'error', __( 'Lezione o orario non trovato.', 'bracelli-club' ) ],
 			'slot_cancelled'    => [ 'error', __( 'L\'orario è annullato: non si può più modificare né registrare.', 'bracelli-club' ) ],
+			'unchanged'         => [ 'info', __( 'Nessuna modifica.', 'bracelli-club' ) ],
 			'not_a_lesson'      => [ 'error', __( 'In quella data non è prevista questa lezione.', 'bracelli-club' ) ],
 			'too_early'         => [ 'error', __( 'Potrai registrare la presenza dal giorno della lezione.', 'bracelli-club' ) ],
 			'too_old'           => [ 'error', __( 'La lezione è troppo vecchia per essere registrata: avvisa la segreteria.', 'bracelli-club' ) ],
@@ -131,8 +134,9 @@ final class CorsiSection implements SectionInterface {
 				);
 				// Nessun break: redirect() termina la richiesta.
 			case 'update':
-				$input  = $portal->posted( [ 'weekday', 'start_time', 'end_time', 'teacher_id', 'location', 'apply_course' ] );
+				$input  = $portal->posted( [ 'weekday', 'start_time', 'end_time', 'teacher_id', 'room_id', 'location', 'apply_course' ] );
 				$result = $this->service->update_slot( $user, $id, $input );
+				$result = self::conflict_as_field( $result );
 				if ( $result['ok'] ) {
 					$portal->redirect(
 						[
@@ -145,8 +149,9 @@ final class CorsiSection implements SectionInterface {
 				$portal->keep_errors( $result, $input, 'orario', [ 'vista' => 'orari' ] );
 				return;
 			case 'add':
-				$input  = $portal->posted( [ 'weekday', 'start_time', 'end_time', 'teacher_id', 'location' ] );
+				$input  = $portal->posted( [ 'weekday', 'start_time', 'end_time', 'teacher_id', 'room_id', 'location' ] );
 				$result = $this->service->add_slot( $user, $id, $input );
+				$result = self::conflict_as_field( $result );
 				if ( $result['ok'] ) {
 					$portal->redirect(
 						[
@@ -214,8 +219,13 @@ final class CorsiSection implements SectionInterface {
 			}
 			echo '<section class="bcp-card bcp-day" aria-labelledby="bcp-day-' . esc_attr( (string) $day ) . '"><h2 id="bcp-day-' . esc_attr( (string) $day ) . '">' . esc_html( $name ) . '</h2><ul class="bcp-lessons">';
 			foreach ( $by_day[ $day ] as $slot ) {
-				echo '<li><span class="bcp-lesson__time">' . esc_html( $this->slot_time( $slot ) ) . '</span> <span class="bcp-lesson__name">' . esc_html( $this->course_label( $slot ) ) . '</span>';
-				echo '<span class="bcp-muted bcp-lesson__section">' . esc_html( (string) $slot['section'] ) . '</span></li>';
+				echo '<li' . ( '' !== (string) $slot['color'] ? ' class="has-color" style="--bcp-course-color:' . esc_attr( (string) $slot['color'] ) . '"' : '' ) . '><span class="bcp-lesson__time">' . esc_html( $this->slot_time( $slot ) ) . '</span> <span class="bcp-lesson__name">' . esc_html( $this->course_label( $slot ) ) . '</span>';
+				echo '<span class="bcp-muted bcp-lesson__section">' . esc_html( (string) $slot['section'] ) . '</span>';
+				$where = $slot['room_id'] > 0 ? (string) $slot['room_name'] : (string) $slot['location'];
+				if ( '' !== $where ) {
+					echo '<span class="bcp-muted bcp-lesson__room">' . esc_html( $where ) . '</span>';
+				}
+				echo '</li>';
 			}
 			echo '</ul></section>';
 		}
@@ -404,34 +414,69 @@ final class CorsiSection implements SectionInterface {
 	}
 
 	/**
-	 * Corsi e orari, con modifica e assegnazione degli insegnanti.
+	 * Corsi e orari (segreteria): ricerca, filtri, azioni sul corso, sale e orari da confermare.
 	 *
 	 * @param int $user Utente.
 	 */
 	private function view_courses( int $user ): void {
 		$section = $this->section_filter();
-		$this->section_form( 'orari', $section );
-		$courses = (array) $this->service->courses_with_slots( $user, $section );
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- filtri di sola lettura.
+		$search = isset( $_GET['q'] ) && is_string( $_GET['q'] ) ? mb_substr( sanitize_text_field( wp_unslash( $_GET['q'] ) ), 0, 80 ) : '';
+		$status = isset( $_GET['stato'] ) && in_array( $_GET['stato'], [ 'active', 'archived', 'all' ], true ) ? sanitize_key( wp_unslash( $_GET['stato'] ) ) : 'active';
+		// phpcs:enable
+		echo '<p class="bcp-row"><a class="bcp-button bcp-button--primary" href="' . esc_url( Portal::url( [ 'vista' => 'nuovo-corso' ] ) ) . '">' . esc_html__( '+ Nuovo corso', 'bracelli-club' ) . '</a></p>';
+		echo '<form class="bcp-card bcp-filters" method="get" action="' . esc_url( Portal::url() ) . '" role="search">';
+		$this->p->get_form_fields();
+		echo '<input type="hidden" name="vista" value="orari">';
+		echo '<div class="bcp-field"><label for="bcp-q">' . esc_html__( 'Cerca', 'bracelli-club' ) . '</label><input id="bcp-q" type="search" name="q" value="' . esc_attr( $search ) . '" placeholder="' . esc_attr__( 'Nome, gruppo, livello…', 'bracelli-club' ) . '"></div>';
+		$this->section_select( $section );
+		echo '<div class="bcp-field"><label for="bcp-stato">' . esc_html__( 'Stato', 'bracelli-club' ) . '</label><select id="bcp-stato" name="stato">';
+		foreach ( [
+			'active'   => __( 'Attivi', 'bracelli-club' ),
+			'archived' => __( 'Archiviati', 'bracelli-club' ),
+			'all'      => __( 'Tutti', 'bracelli-club' ),
+		] as $value => $label ) {
+			echo '<option value="' . esc_attr( $value ) . '"' . selected( $status, $value, false ) . '>' . esc_html( $label ) . '</option>';
+		}
+		echo '</select></div><button class="bcp-button" type="submit">' . esc_html__( 'Filtra', 'bracelli-club' ) . '</button></form>';
+
+		$courses = (array) $this->catalog->list( $user, $section, $status, $search );
 		if ( [] === $courses ) {
-			echo '<p class="bcp-card">' . esc_html__( 'Nessun corso. Un amministratore può importare i corsi da Bracelli Club → Importa corsi.', 'bracelli-club' ) . '</p>';
+			echo '<p class="bcp-card">' . esc_html__( 'Nessun corso con questi filtri.', 'bracelli-club' ) . '</p>';
 			return;
 		}
+		/* translators: %d: numero di corsi. */
+		echo '<p class="bcp-muted">' . esc_html( sprintf( _n( '%d corso', '%d corsi', count( $courses ), 'bracelli-club' ), count( $courses ) ) ) . '</p>';
 		$days = CourseService::weekdays();
 		foreach ( $courses as $course ) {
-			echo '<article class="bcp-card bcp-course"><div class="bcp-course__head"><h2>' . esc_html( $this->course_label( $course, 'name' ) ) . '</h2><span class="bcp-muted">' . esc_html( (string) $course['section'] ) . '</span></div>';
+			$archived = 'archived' === $course['status'];
+			$style    = '' !== $course['color'] ? ' style="--bcp-course-color:' . esc_attr( $course['color'] ) . '"' : '';
+			echo '<article class="bcp-card bcp-course' . ( '' !== $course['color'] ? ' has-color' : '' ) . ( $archived ? ' is-archived' : '' ) . '"' . $style . '><div class="bcp-course__head"><h2>' . esc_html( $this->course_label( $course, 'name' ) ) . '</h2><span class="bcp-muted">' . esc_html( (string) $course['section'] . ( '' !== $course['level'] ? ' · ' . $course['level'] : '' ) ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $style costruito con esc_attr.
+			if ( $archived ) {
+				echo ' <span class="bcp-badge bcp-badge--cancelled">' . esc_html__( 'Archiviato', 'bracelli-club' ) . '</span>';
+			}
+			echo '</div>';
 			if ( '' !== (string) $course['notes'] ) {
 				echo '<p class="bcp-muted">' . esc_html( (string) $course['notes'] ) . '</p>';
 			}
 			if ( [] === $course['slots'] ) {
-				echo '<p class="bcp-alert bcp-alert--info">' . esc_html__( 'Nessun orario: giorni e orari non sono indicati nei dati importati.', 'bracelli-club' ) . '</p>';
+				echo '<p class="bcp-alert bcp-alert--info">' . esc_html__( 'Nessun orario: giorni e orari non sono ancora indicati.', 'bracelli-club' ) . '</p>';
 			} else {
 				echo '<ul class="bcp-slots">';
 				foreach ( $course['slots'] as $slot ) {
-					$cancelled = 'active' !== $slot['status'];
-					echo '<li class="' . ( $cancelled ? 'is-cancelled' : '' ) . '"><span class="bcp-slot__when">' . esc_html( $days[ $slot['weekday'] ] . ' ' . $this->slot_time( $slot ) ) . '</span>';
+					$cancelled = 'cancelled' === $slot['status'];
+					$draft     = 'draft' === $slot['status'];
+					echo '<li class="' . ( $cancelled ? 'is-cancelled' : '' ) . ( $draft ? 'is-draft' : '' ) . '"><span class="bcp-slot__when">' . esc_html( $days[ $slot['weekday'] ] . ' ' . $this->slot_time( $slot ) ) . '</span>';
 					echo '<span class="bcp-slot__teacher">' . $this->teacher_cell( $slot ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup con escape.
+					echo '<span class="bcp-slot__room">' . $this->room_cell( $slot ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup con escape.
 					if ( $cancelled ) {
 						echo '<span class="bcp-badge bcp-badge--cancelled">' . esc_html__( 'Annullato', 'bracelli-club' ) . '</span>';
+					}
+					if ( $draft ) {
+						echo '<span class="bcp-badge bcp-badge--draft">' . esc_html__( 'Da confermare', 'bracelli-club' ) . '</span>';
+						echo '<form class="bcp-inline" method="post" action="' . esc_url( Portal::url( [ 'vista' => 'orari' ] ) ) . '">';
+						$this->p->action_fields( 'catalogo_confirm', (int) $slot['id'] );
+						echo '<button class="bcp-link-button" type="submit">' . esc_html__( 'Conferma', 'bracelli-club' ) . '</button></form>';
 					}
 					echo ' <a class="bcp-link" href="' . esc_url(
 						Portal::url(
@@ -444,14 +489,11 @@ final class CorsiSection implements SectionInterface {
 				}
 				echo '</ul>';
 			}
-			echo '<p><a class="bcp-link" href="' . esc_url(
-				Portal::url(
-					[
-						'vista' => 'nuovo-orario',
-						'corso' => $course['id'],
-					]
-				)
-			) . '">' . esc_html__( '+ Aggiungi orario', 'bracelli-club' ) . '</a></p></article>';
+			echo '<p class="bcp-course__actions">';
+			foreach ( CatalogoSection::course_links( $course ) as [ $label, $args, $class ] ) {
+				echo '<a class="' . esc_attr( $class ) . '" href="' . esc_url( Portal::url( $args ) ) . '">' . esc_html( $label ) . '</a> ';
+			}
+			echo '</p></article>';
 		}
 	}
 
@@ -467,12 +509,16 @@ final class CorsiSection implements SectionInterface {
 			return;
 		}
 		$this->slot_summary( $slot );
-		if ( 'active' === $slot['status'] ) {
+		if ( 'draft' === $slot['status'] ) {
+			echo '<p class="bcp-alert bcp-alert--info">' . esc_html__( 'Orario da confermare: non compare nel calendario e non occupa la sala finché non lo confermi dall\'elenco dei corsi.', 'bracelli-club' ) . '</p>';
+		}
+		if ( in_array( $slot['status'], [ 'active', 'draft' ], true ) ) {
 			$values = [] !== $this->p->old() ? $this->p->old() : [
 				'weekday'    => (string) $slot['weekday'],
 				'start_time' => substr( (string) $slot['start_time'], 0, 5 ),
 				'end_time'   => substr( (string) $slot['end_time'], 0, 5 ),
 				'teacher_id' => (string) $slot['teacher_id'],
+				'room_id'    => (string) $slot['room_id'],
 				'location'   => (string) $slot['location'],
 			];
 			echo '<form class="bcp-card bcp-form" method="post" action="' . esc_url(
@@ -541,7 +587,7 @@ final class CorsiSection implements SectionInterface {
 			return;
 		}
 		$this->slot_summary( $slot );
-		if ( 'active' !== $slot['status'] ) {
+		if ( ! in_array( $slot['status'], [ 'active', 'draft' ], true ) ) {
 			echo '<p class="bcp-alert bcp-alert--info">' . esc_html__( 'Questo orario è già annullato.', 'bracelli-club' ) . '</p>';
 			return;
 		}
@@ -608,7 +654,32 @@ final class CorsiSection implements SectionInterface {
 		if ( [] === $teachers ) {
 			echo '<p class="bcp-muted">' . esc_html__( 'Non ci sono ancora account insegnante: un amministratore deve crearli con il ruolo "Istruttore Bracelli".', 'bracelli-club' ) . '</p>';
 		}
-		echo '<label for="bcp-location">' . esc_html__( 'Sala o campo (facoltativo)', 'bracelli-club' ) . '</label><input id="bcp-location" type="text" maxlength="120" name="location" value="' . esc_attr( $values['location'] ?? '' ) . '">';
+		$rooms = $this->service->rooms()->choices();
+		$room  = (string) ( $values['room_id'] ?? '0' );
+		if ( '0' !== $room && '' !== $room && ! isset( $rooms[ (int) $room ] ) ) {
+			// Sala archiviata ancora assegnata a questo orario: resta selezionabile.
+			$current = $this->service->repo()->find_room( (int) $room );
+			if ( null !== $current ) {
+				$rooms[ (int) $room ] = (string) $current['name'];
+			}
+		}
+		echo '<label for="bcp-room">' . esc_html__( 'Sala', 'bracelli-club' ) . '</label><select id="bcp-room" name="room_id"';
+		$this->p->invalid_attr( 'room_id' );
+		echo '><option value="0">' . esc_html__( 'Nessuna sala', 'bracelli-club' ) . '</option>';
+		foreach ( $rooms as $id => $name ) {
+			echo '<option value="' . esc_attr( (string) $id ) . '"' . selected( $room, (string) $id, false ) . '>' . esc_html( $name ) . '</option>';
+		}
+		echo '</select>';
+		$this->p->field_error( 'room_id' );
+		if ( [] === $rooms ) {
+			echo '<p class="bcp-muted">' . esc_html__( 'Non ci sono ancora sale: aggiungile dalla scheda "Sale".', 'bracelli-club' ) . '</p>';
+		}
+		// Il vecchio testo "sede" resta visibile e modificabile finché l'orario non ha una sala; poi resta conservato.
+		if ( '0' === $room || '' === $room ) {
+			echo '<label for="bcp-location">' . esc_html__( 'Sede (vecchio testo, finché non scegli una sala)', 'bracelli-club' ) . '</label><input id="bcp-location" type="text" maxlength="120" name="location" value="' . esc_attr( $values['location'] ?? '' ) . '">';
+		} else {
+			echo '<input type="hidden" name="location" value="' . esc_attr( $values['location'] ?? '' ) . '">';
+		}
 	}
 
 	/**
@@ -621,6 +692,7 @@ final class CorsiSection implements SectionInterface {
 		echo '<div><dt>' . esc_html__( 'Corso', 'bracelli-club' ) . '</dt><dd>' . esc_html( $this->course_label( $slot ) ) . '</dd></div>';
 		echo '<div><dt>' . esc_html__( 'Giorno e orario', 'bracelli-club' ) . '</dt><dd>' . esc_html( CourseService::weekdays()[ $slot['weekday'] ] . ' ' . $this->slot_time( $slot ) ) . '</dd></div>';
 		echo '<div><dt>' . esc_html__( 'Insegnante', 'bracelli-club' ) . '</dt><dd>' . $this->teacher_cell( $slot ) . '</dd></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup con escape.
+		echo '<div><dt>' . esc_html__( 'Sala', 'bracelli-club' ) . '</dt><dd>' . $this->room_cell( $slot ) . '</dd></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup con escape.
 		echo '<div><dt>' . esc_html__( 'Origine', 'bracelli-club' ) . '</dt><dd>' . esc_html( null === $slot['ext_key'] ? __( 'Aggiunto dallo staff', 'bracelli-club' ) : ( 1 === $slot['manual'] ? __( 'Importato, poi modificato dallo staff', 'bracelli-club' ) : __( 'Importato', 'bracelli-club' ) ) ) . '</dd></div>';
 		echo '</dl>';
 	}
@@ -636,6 +708,7 @@ final class CorsiSection implements SectionInterface {
 			'corsi.slot_created'        => __( 'Orario aggiunto', 'bracelli-club' ),
 			'corsi.slot_updated'        => __( 'Orario o insegnante modificati', 'bracelli-club' ),
 			'corsi.slot_cancelled'      => __( 'Orario annullato', 'bracelli-club' ),
+			'corsi.slot_confirmed'      => __( 'Orario confermato', 'bracelli-club' ),
 			'corsi.attendance_recorded' => __( 'Presenza registrata', 'bracelli-club' ),
 			'corsi.attendance_changed'  => __( 'Presenza cambiata', 'bracelli-club' ),
 		];
@@ -665,17 +738,25 @@ final class CorsiSection implements SectionInterface {
 	 */
 	private function history_detail( string $action, array $diff ): string {
 		$days = CourseService::weekdays();
-		$slot = function ( $d ) use ( $days ): string {
+		$room = function ( $d ): string {
+			if ( ! is_array( $d ) || ! array_key_exists( 'room_id', $d ) ) {
+				return '';
+			}
+			$found = (int) $d['room_id'] > 0 ? $this->service->repo()->find_room( (int) $d['room_id'] ) : null;
+			return ', ' . ( null === $found ? __( 'nessuna sala', 'bracelli-club' ) : (string) $found['name'] );
+		};
+		$slot = function ( $d ) use ( $days, $room ): string {
 			if ( ! is_array( $d ) || ! isset( $d['weekday'], $d['start_time'], $d['end_time'] ) ) {
 				return '';
 			}
 			$teacher = (int) ( $d['teacher_id'] ?? 0 );
-			return ( $days[ (int) $d['weekday'] ] ?? '' ) . ' ' . $this->slot_time( $d ) . ', ' . ( $teacher > 0 ? $this->p->user_name( $teacher ) : __( 'nessun insegnante', 'bracelli-club' ) );
+			return ( $days[ (int) $d['weekday'] ] ?? '' ) . ' ' . $this->slot_time( $d ) . ', ' . ( $teacher > 0 ? $this->p->user_name( $teacher ) : __( 'nessun insegnante', 'bracelli-club' ) ) . $room( $d );
 		};
-		$att  = static fn( $v ): string => 'present' === $v ? __( 'Presente', 'bracelli-club' ) : ( 'absent' === $v ? __( 'Assente', 'bracelli-club' ) : '—' );
+
+		$att = static fn( $v ): string => 'present' === $v ? __( 'Presente', 'bracelli-club' ) : ( 'absent' === $v ? __( 'Assente', 'bracelli-club' ) : '—' );
 		return match ( $action ) {
 			'corsi.slot_created'        => $slot( $diff ),
-			'corsi.slot_updated'        => $slot( $diff['before'] ?? null ) . ' → ' . $slot( $diff['after'] ?? null ),
+			'corsi.slot_updated'        => isset( $diff['after']['weekday'] ) ? $slot( $diff['before'] ?? null ) . ' → ' . $slot( $diff['after'] ?? null ) : ltrim( $room( $diff['before'] ?? null ) . ' →' . $room( $diff['after'] ?? null ), ', ' ),
 			'corsi.attendance_recorded' => $this->p->format_date( (string) ( $diff['lesson_date'] ?? '' ) ) . ': ' . $att( $diff['after'] ?? null ),
 			'corsi.attendance_changed'  => $this->p->format_date( (string) ( $diff['lesson_date'] ?? '' ) ) . ': ' . $att( $diff['before'] ?? null ) . ' → ' . $att( $diff['after'] ?? null ),
 			default                     => '',
@@ -696,6 +777,35 @@ final class CorsiSection implements SectionInterface {
 			$out .= ' <span class="bcp-muted">' . esc_html( sprintf( __( '(nei dati: %s)', 'bracelli-club' ), (string) $slot['teacher_label'] ) ) . '</span>';
 		}
 		return $out;
+	}
+
+	/**
+	 * Sala assegnata oppure il vecchio testo "sede" (finché non c'è una sala).
+	 *
+	 * @param array<string, mixed> $slot Orario o lezione.
+	 */
+	private function room_cell( array $slot ): string {
+		if ( (int) ( $slot['room_id'] ?? 0 ) > 0 && '' !== (string) ( $slot['room_name'] ?? '' ) ) {
+			return esc_html( (string) $slot['room_name'] );
+		}
+		$old = (string) ( $slot['location'] ?? '' );
+		return '' === $old
+			? '<span class="bcp-muted">' . esc_html__( 'Sala da assegnare', 'bracelli-club' ) . '</span>'
+			/* translators: %s: vecchio testo "sede" dell'orario. */
+			: '<span class="bcp-muted">' . esc_html( sprintf( __( 'Sede: %s (sala da assegnare)', 'bracelli-club' ), $old ) ) . '</span>';
+	}
+
+	/**
+	 * Una sala occupata diventa un errore sul campo della sala, così il modulo resta compilato.
+	 *
+	 * @param array{ok: bool, code: string, errors: array<string, string>, id: int} $result Esito.
+	 * @return array{ok: bool, code: string, errors: array<string, string>, id: int}
+	 */
+	private static function conflict_as_field( array $result ): array {
+		if ( 'room_conflict' === $result['code'] ) {
+			$result['code'] = 'invalid';
+		}
+		return $result;
 	}
 
 	/**

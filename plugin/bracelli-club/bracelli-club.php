@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Bracelli Club
  * Description:       Management tools for the Bracelli Club sports centre: modular dashboard, roles, activity log, diagnostics, private members area, courses, instructor attendance and staff shifts.
- * Version:           0.3.1
+ * Version:           0.4.1
  * Requires at least: 6.9
  * Requires PHP:      8.2
  * Author:            Bracelli Club
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BRACELLI_CLUB_VERSION', '0.3.1' );
+define( 'BRACELLI_CLUB_VERSION', '0.4.1' );
 define( 'BRACELLI_CLUB_FILE', __FILE__ );
 define( 'BRACELLI_CLUB_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BRACELLI_CLUB_URL', plugin_dir_url( __FILE__ ) );

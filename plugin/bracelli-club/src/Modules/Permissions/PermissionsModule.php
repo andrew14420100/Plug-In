@@ -29,6 +29,9 @@ final class PermissionsModule implements ModuleInterface {
 	public const ACTION_SAVE  = 'bracelli_club_permissions_save';
 	public const ACTION_RESET = 'bracelli_club_permissions_reset';
 
+	public const ACTION_CONVERT     = 'bracelli_club_legacy_convert';
+	public const ACTION_DROP_LEGACY = 'bracelli_club_legacy_drop';
+
 	/**
 	 * Servizi.
 	 *
@@ -44,6 +47,9 @@ final class PermissionsModule implements ModuleInterface {
 		add_action( 'admin_menu', [ $this, 'menu' ] );
 		add_action( 'admin_post_' . self::ACTION_SAVE, [ $this, 'handle_save' ] );
 		add_action( 'admin_post_' . self::ACTION_RESET, [ $this, 'handle_reset' ] );
+		add_action( 'admin_post_' . self::ACTION_CONVERT, [ $this, 'handle_convert' ] );
+		add_action( 'admin_post_' . self::ACTION_DROP_LEGACY, [ $this, 'handle_drop_legacy' ] );
+		add_filter( 'editable_roles', [ Roles::class, 'filter_editable' ] );
 	}
 
 	/**
@@ -65,11 +71,14 @@ final class PermissionsModule implements ModuleInterface {
 				'unchanged' => [ 'info', __( 'Nessuna modifica.', 'bracelli-club' ) ],
 				'reset'     => [ 'success', __( 'Permessi predefiniti ripristinati.', 'bracelli-club' ) ],
 				'failed'    => [ 'error', __( 'Operazione non valida.', 'bracelli-club' ) ],
+				'converted' => [ 'success', __( 'Utente convertito in Segreteria Bracelli. La modifica è nel registro attività.', 'bracelli-club' ) ],
+				'confirm'   => [ 'error', __( 'Spunta la conferma: nessuna modifica eseguita.', 'bracelli-club' ) ],
+				'dropped'   => [ 'success', __( 'Ruolo "Gestore corsi" eliminato (nessun utente lo aveva).', 'bracelli-club' ) ],
 			]
 		);
 
 		$caps  = Capabilities::all();
-		$roles = Roles::definitions();
+		$roles = Roles::existing();
 
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="bc-card">';
 		echo '<input type="hidden" name="action" value="' . esc_attr( self::ACTION_SAVE ) . '">';
@@ -129,6 +138,7 @@ final class PermissionsModule implements ModuleInterface {
 			echo '<button type="submit" class="bc-button bc-button--ghost">' . esc_html( translate_user_role( $role['label'] ) ) . '</button></form>';
 		}
 		echo '</div></div>';
+		$this->render_legacy();
 		Layout::close();
 	}
 
@@ -140,7 +150,7 @@ final class PermissionsModule implements ModuleInterface {
 		check_admin_referer( self::ACTION_SAVE );
 		$posted = isset( $_POST['caps'] ) && is_array( $_POST['caps'] ) ? map_deep( wp_unslash( $_POST['caps'] ), 'sanitize_key' ) : [];
 		$diff   = [];
-		foreach ( Roles::slugs() as $slug ) {
+		foreach ( array_keys( Roles::existing() ) as $slug ) {
 			$wanted = isset( $posted[ $slug ] ) && is_array( $posted[ $slug ] ) ? array_map( 'strval', $posted[ $slug ] ) : [];
 			$change = Roles::set_role_caps( $slug, $wanted );
 			if ( [] !== $change['added'] || [] !== $change['removed'] ) {
@@ -169,7 +179,7 @@ final class PermissionsModule implements ModuleInterface {
 		Layout::require_cap( Capabilities::PERMISSIONS_MANAGE );
 		$slug = isset( $_POST['role'] ) ? sanitize_key( wp_unslash( $_POST['role'] ) ) : '';
 		check_admin_referer( self::ACTION_RESET . '_' . $slug );
-		if ( ! in_array( $slug, Roles::slugs(), true ) ) {
+		if ( ! array_key_exists( $slug, Roles::existing() ) ) {
 			Layout::redirect( self::SLUG, 'failed' );
 		}
 		$change = Roles::reset_role( $slug );
@@ -183,5 +193,117 @@ final class PermissionsModule implements ModuleInterface {
 			]
 		);
 		Layout::redirect( self::SLUG, 'reset' );
+	}
+	/**
+	 * Ruolo "Gestore corsi" non più usato: utenti che lo hanno e conversione su conferma, una persona alla volta.
+	 * Nessuna conversione automatica: i permessi di questi utenti restano invariati finché l'amministratore non decide.
+	 */
+	private function render_legacy(): void {
+		$role = get_role( Roles::GESTORE_CORSI );
+		if ( null === $role ) {
+			return;
+		}
+		$users = get_users(
+			[
+				'role'    => Roles::GESTORE_CORSI,
+				'orderby' => 'display_name',
+				'fields'  => [ 'ID', 'display_name', 'user_login' ],
+			]
+		);
+		echo '<div class="bc-card"><h2>' . esc_html__( 'Ruolo "Gestore corsi" (non più usato)', 'bracelli-club' ) . '</h2>';
+		echo '<p class="bc-muted">' . esc_html__( 'Il ruolo non si assegna più a nuovi utenti. Chi lo ha già continua a gestire i corsi come prima, finché non decidi di convertirlo.', 'bracelli-club' ) . '</p>';
+		if ( [] === $users ) {
+			echo '<p>' . esc_html__( 'Nessun utente ha questo ruolo. Puoi eliminarlo: non cambia i permessi di nessuno.', 'bracelli-club' ) . '</p>';
+			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+			echo '<input type="hidden" name="action" value="' . esc_attr( self::ACTION_DROP_LEGACY ) . '">';
+			wp_nonce_field( self::ACTION_DROP_LEGACY );
+			echo '<p><label><input type="checkbox" name="confirm" value="1"> ' . esc_html__( 'Confermo l\'eliminazione del ruolo "Gestore corsi".', 'bracelli-club' ) . '</label></p>';
+			echo '<button type="submit" class="bc-button bc-button--ghost">' . esc_html__( 'Elimina il ruolo', 'bracelli-club' ) . '</button></form></div>';
+			return;
+		}
+		/* translators: %d: numero di utenti. */
+		echo '<p>' . esc_html( sprintf( _n( '%d utente ha ancora questo ruolo.', '%d utenti hanno ancora questo ruolo.', count( $users ), 'bracelli-club' ), count( $users ) ) ) . ' ' . esc_html__( 'Convertire un utente in "Segreteria Bracelli" gli toglie "Gestore corsi" e gli dà i permessi della segreteria, che comprendono anche la gestione dei turni del personale.', 'bracelli-club' ) . '</p>';
+		echo '<div class="bc-table-scroll"><table class="bc-table"><thead><tr><th scope="col">' . esc_html__( 'Utente', 'bracelli-club' ) . '</th><th scope="col">' . esc_html__( 'Conversione', 'bracelli-club' ) . '</th></tr></thead><tbody>';
+		foreach ( $users as $user ) {
+			$id = (int) $user->ID;
+			echo '<tr><td>' . esc_html( (string) $user->display_name ) . ' <span class="bc-muted">(' . esc_html( (string) $user->user_login ) . ')</span></td><td>';
+			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+			echo '<input type="hidden" name="action" value="' . esc_attr( self::ACTION_CONVERT ) . '"><input type="hidden" name="user_id" value="' . esc_attr( (string) $id ) . '">';
+			wp_nonce_field( self::ACTION_CONVERT . '_' . $id );
+			/* translators: %s: nome dell'utente. */
+			echo '<label><input type="checkbox" name="confirm" value="1"> ' . esc_html( sprintf( __( 'Confermo: %s diventa Segreteria Bracelli', 'bracelli-club' ), (string) $user->display_name ) ) . '</label> ';
+			echo '<button type="submit" class="bc-button bc-button--ghost">' . esc_html__( 'Converti', 'bracelli-club' ) . '</button></form></td></tr>';
+		}
+		echo '</tbody></table></div></div>';
+	}
+
+	/**
+	 * Converte un utente "Gestore corsi" in "Segreteria Bracelli" (solo con conferma esplicita).
+	 */
+	public function handle_convert(): void {
+		Layout::require_cap( Capabilities::PERMISSIONS_MANAGE );
+		$id = isset( $_POST['user_id'] ) ? absint( $_POST['user_id'] ) : 0;
+		check_admin_referer( self::ACTION_CONVERT . '_' . $id );
+		if ( ! current_user_can( 'promote_user', $id ) ) {
+			Layout::redirect( self::SLUG, 'failed' );
+		}
+		if ( empty( $_POST['confirm'] ) ) {
+			Layout::redirect( self::SLUG, 'confirm' );
+		}
+		$user = get_userdata( $id );
+		if ( false === $user || ! in_array( Roles::GESTORE_CORSI, (array) $user->roles, true ) || null === get_role( Roles::SEGRETERIA ) ) {
+			Layout::redirect( self::SLUG, 'failed' );
+		}
+		$before = array_values( (array) $user->roles );
+		$user->remove_role( Roles::GESTORE_CORSI );
+		if ( ! in_array( Roles::SEGRETERIA, (array) $user->roles, true ) ) {
+			$user->add_role( Roles::SEGRETERIA );
+		}
+		$this->plugin->audit->log(
+			'roles.legacy_converted',
+			[
+				'module'        => 'permissions',
+				'resource_type' => 'user',
+				'resource_id'   => (string) $id,
+				'diff'          => [
+					'before' => $before,
+					'after'  => array_values( (array) get_userdata( $id )->roles ),
+				],
+			]
+		);
+		Layout::redirect( self::SLUG, 'converted' );
+	}
+
+	/**
+	 * Elimina il ruolo "Gestore corsi" solo se nessun utente lo ha e con conferma esplicita.
+	 */
+	public function handle_drop_legacy(): void {
+		Layout::require_cap( Capabilities::PERMISSIONS_MANAGE );
+		check_admin_referer( self::ACTION_DROP_LEGACY );
+		if ( empty( $_POST['confirm'] ) ) {
+			Layout::redirect( self::SLUG, 'confirm' );
+		}
+		$count = count(
+			get_users(
+				[
+					'role'   => Roles::GESTORE_CORSI,
+					'fields' => 'ID',
+					'number' => 1,
+				]
+			)
+		);
+		if ( null === get_role( Roles::GESTORE_CORSI ) || $count > 0 ) {
+			Layout::redirect( self::SLUG, 'failed' );
+		}
+		remove_role( Roles::GESTORE_CORSI );
+		$this->plugin->audit->log(
+			'roles.legacy_dropped',
+			[
+				'module'        => 'permissions',
+				'resource_type' => 'role',
+				'resource_id'   => Roles::GESTORE_CORSI,
+			]
+		);
+		Layout::redirect( self::SLUG, 'dropped' );
 	}
 }

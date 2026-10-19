@@ -27,7 +27,10 @@ final class Roles {
 	 * Ruoli e capability predefinite. Le etichette non sono tradotte qui perché
 	 * WordPress memorizza il nome del ruolo nel database.
 	 *
-	 * @return array<string, array{label: string, caps: string[]}>
+	 * Un ruolo "legacy" non si crea più e non si assegna a nuovi utenti, ma resta valido (con i suoi permessi)
+	 * per chi lo ha già: lo si converte solo su conferma dell'amministratore (PermissionsModule).
+	 *
+	 * @return array<string, array{label: string, caps: string[], legacy?: bool}>
 	 */
 	public static function definitions(): array {
 		return [
@@ -40,9 +43,11 @@ final class Roles {
 				'label' => 'Istruttore Bracelli',
 				'caps'  => [ Capabilities::DASHBOARD_VIEW, Capabilities::CORSI_VIEW, Capabilities::CORSI_TEACH ],
 			],
+			// Non più usato (i ruoli sono amministratore, segreteria, insegnanti e soci): resta solo per chi lo ha già.
 			self::GESTORE_CORSI => [
-				'label' => 'Gestore corsi Bracelli',
-				'caps'  => [ Capabilities::DASHBOARD_VIEW, Capabilities::CORSI_VIEW, Capabilities::CORSI_MANAGE ],
+				'label'  => 'Gestore corsi Bracelli',
+				'caps'   => [ Capabilities::DASHBOARD_VIEW, Capabilities::CORSI_VIEW, Capabilities::CORSI_MANAGE ],
+				'legacy' => true,
 			],
 			// Prototipo Turni e presenze: usa solo l'area turni, senza bacheca WordPress.
 			self::DIPENDENTE    => [
@@ -65,11 +70,42 @@ final class Roles {
 	}
 
 	/**
+	 * Ruoli Bracelli presenti sul sito (un ruolo legacy compare solo se esiste ancora).
+	 *
+	 * @return array<string, array{label: string, caps: string[], legacy?: bool}>
+	 */
+	public static function existing(): array {
+		return array_filter( self::definitions(), static fn( string $slug ): bool => null !== get_role( $slug ), ARRAY_FILTER_USE_KEY );
+	}
+
+	/**
+	 * Ruoli assegnabili nella schermata Utenti: un ruolo legacy resta solo per un utente che lo ha già,
+	 * così salvare il suo profilo non gli cambia ruolo; non è proponibile a nessun altro.
+	 *
+	 * @param array<string, mixed> $roles Ruoli modificabili.
+	 * @return array<string, mixed>
+	 */
+	public static function filter_editable( array $roles ): array {
+		// phpcs:ignore WordPress.Security.NonceVerification -- serve solo a capire quale utente si sta modificando; WordPress verifica il resto.
+		$target = isset( $_REQUEST['user_id'] ) ? absint( $_REQUEST['user_id'] ) : 0;
+		foreach ( self::definitions() as $slug => $definition ) {
+			if ( empty( $definition['legacy'] ) || ! isset( $roles[ $slug ] ) ) {
+				continue;
+			}
+			$user = $target > 0 ? get_userdata( $target ) : false;
+			if ( false === $user || ! in_array( $slug, (array) $user->roles, true ) ) {
+				unset( $roles[ $slug ] );
+			}
+		}
+		return $roles;
+	}
+
+	/**
 	 * Crea i ruoli mancanti e garantisce tutte le capability all'amministratore. Idempotente.
 	 */
 	public static function sync(): void {
 		foreach ( self::definitions() as $slug => $definition ) {
-			if ( null === get_role( $slug ) ) {
+			if ( null === get_role( $slug ) && empty( $definition['legacy'] ) ) {
 				$caps = [ 'read' => true ];
 				foreach ( $definition['caps'] as $cap ) {
 					$caps[ $cap ] = true;

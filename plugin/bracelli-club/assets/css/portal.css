@@ -227,6 +227,7 @@ body.bcp {
 .bcp-form input[type="date"],
 .bcp-form input[type="time"],
 .bcp-form select,
+.bcp-form textarea,
 .bcp-filters input,
 .bcp-filters select {
 	width: 100%;
@@ -644,4 +645,104 @@ body.bcp {
 .bcp-shift__course {
 	margin: 4px 0 0;
 	font-weight: 600;
+}
+
+/* Catalogo e sale (fase 1) */
+.bcp-form textarea {
+	min-height: auto;
+	resize: vertical;
+}
+
+.bcp-course.has-color {
+	border-left: 6px solid var(--bcp-course-color);
+}
+
+.bcp-course.is-archived {
+	opacity: 0.75;
+}
+
+.bcp-course__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 16px;
+	margin: 12px 0 0;
+}
+
+.bcp-slot__room {
+	flex: 1 1 160px;
+}
+
+.bcp-slots li.is-draft .bcp-slot__when {
+	color: var(--bcp-muted);
+	font-style: italic;
+}
+
+.bcp-badge--draft {
+	background: var(--bcp-info-bg);
+	color: var(--bcp-accent-strong);
+	border: 1px dashed var(--bcp-accent);
+}
+
+.bcp-inline {
+	display: inline;
+	margin: 0;
+}
+
+.bcp-link-button {
+	min-height: 44px;
+	padding: 0 4px;
+	border: 0;
+	background: none;
+	color: var(--bcp-accent-strong);
+	font: inherit;
+	font-weight: 600;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.bcp-link-button:focus-visible {
+	outline: none;
+	box-shadow: var(--bcp-focus);
+}
+
+.bcp-colors {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+	margin: 12px 0 0;
+	padding: 8px 12px;
+	border: 1px solid var(--bcp-border);
+	border-radius: 8px;
+}
+
+.bcp-colors legend {
+	padding: 0 4px;
+	font-weight: 600;
+}
+
+.bcp-form .bcp-color {
+	display: inline-flex;
+	gap: 6px;
+	align-items: center;
+	min-height: 44px;
+	margin: 0;
+	font-weight: 400;
+}
+
+.bcp-swatch {
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.bcp-lessons li.has-color {
+	border-left: 4px solid var(--bcp-course-color);
+	padding-left: 8px;
+}
+
+.bcp-lesson__room {
+	grid-column: 2;
+	font-size: 0.9rem;
 }

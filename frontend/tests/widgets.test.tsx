@@ -16,24 +16,61 @@ const basePrefs: Preferences = {
 	favorites: [],
 };
 
-describe( 'Areas', () => {
-	it( 'dichiara le aree non disponibili senza mostrare contatori', () => {
-		const { container } = render(
-			<Areas
-				data={ {
-					items: [
-						{ id: 'members', label: 'Soci e tessere', phase: 2 },
-						{ id: 'billing', label: 'Quote e incassi', phase: 5 },
-					],
-					note: 'Nessun dato disponibile.',
-				} }
-			/>
+describe( 'Areas (avanzamento del progetto)', () => {
+	const data = {
+		phases: [
+			{
+				id: 'corsi-0',
+				number: 0,
+				title: 'Stabilizzazione e audit',
+				description: 'Correzioni di sicurezza.',
+				status: 'completed' as const,
+			},
+			{
+				id: 'corsi-1',
+				number: 1,
+				title: 'Catalogo e sale',
+				description: 'Corsi e sale.',
+				status: 'in_progress' as const,
+			},
+			{
+				id: 'corsi-2',
+				number: 2,
+				title: 'Calendario, eccezioni e stagioni',
+				description: 'Festività e chiusure.',
+				status: 'planned' as const,
+			},
+		],
+		completed: 1,
+		total: 3,
+		areas: [
+			{
+				id: 'members',
+				label: 'Soci e tessere',
+				status: 'planned' as const,
+			},
+		],
+		note: 'Nota.',
+	};
+
+	it( 'mostra le fasi in ordine con lo stato dichiarato dal server, in testo', () => {
+		render( <Areas data={ data } /> );
+		const items = screen.getAllByRole( 'listitem' );
+		expect( items[ 0 ].textContent ).toContain(
+			'Fase 0 — Stabilizzazione e audit'
 		);
-		expect( screen.getAllByText( 'Non ancora disponibile' ) ).toHaveLength(
-			2
-		);
-		const text = ( container.textContent ?? '' ).replace( /Fase \d/g, '' );
-		expect( text ).not.toMatch( /\d/ );
+		expect( items[ 0 ].textContent ).toContain( 'Completata' );
+		expect( items[ 1 ].textContent ).toContain( 'In corso' );
+		expect( items[ 2 ].textContent ).toContain( 'Pianificata' );
+		expect( screen.getByText( 'Non ancora avviata' ) ).toBeTruthy();
+	} );
+
+	it( "l'indicatore conta solo le fasi completate", () => {
+		render( <Areas data={ data } /> );
+		const bar = screen.getByRole( 'progressbar' );
+		expect( bar.getAttribute( 'aria-valuenow' ) ).toBe( '1' );
+		expect( bar.getAttribute( 'aria-valuemax' ) ).toBe( '3' );
+		expect( screen.getByText( '1 di 3 fasi completate' ) ).toBeTruthy();
 	} );
 } );
 
@@ -80,8 +117,8 @@ describe( 'WidgetGrid', () => {
 		},
 		{
 			id: 'areas',
-			title: 'Aree gestionali',
-			data: { items: [], note: '' },
+			title: 'Avanzamento del progetto',
+			data: { phases: [], completed: 0, total: 0, areas: [], note: '' },
 		},
 		{ id: 'favorites', title: 'Preferiti', data: {} },
 	];
@@ -132,7 +169,7 @@ describe( 'WidgetGrid', () => {
 		act( () => {
 			fireEvent.click(
 				screen.getByRole( 'button', {
-					name: /Nascondi widget — Aree gestionali/,
+					name: /Nascondi widget — Avanzamento del progetto/,
 				} )
 			);
 		} );

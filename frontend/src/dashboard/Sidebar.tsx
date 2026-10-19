@@ -1,6 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import Icon from '../shared/Icon';
 import { applyOrder } from '../shared/list';
+import Brand from '../shared/brand';
 import type { NavItem, Preferences } from '../shared/types';
 
 interface SidebarProps {
@@ -28,12 +29,18 @@ export default function Sidebar( {
 			aria-label={ __( 'Navigazione Bracelli', 'bracelli-club' ) }
 		>
 			<div className="bc-brand">
-				<span className="bc-brand-mark" aria-hidden="true">
-					B
-				</span>
-				<span className="bc-brand-name">
-					Bracelli<span>Club</span>
-				</span>
+				<Brand
+					wordmark={
+						<>
+							<span className="bc-brand-mark" aria-hidden="true">
+								B
+							</span>
+							<span className="bc-brand-name">
+								Bracelli<span>Club</span>
+							</span>
+						</>
+					}
+				/>
 			</div>
 			<ul className="bc-nav">
 				{ items.map( ( item ) => (
@@ -52,7 +59,8 @@ export default function Sidebar( {
 				) ) }
 			</ul>
 			<div className="bc-sidebar-footer">
-				{ allowHideWpMenu && (
+				{ /* Con il menu nascosto si riapre dal pulsante sempre visibile in alto. */ }
+				{ allowHideWpMenu && ! prefs.hide_wp_menu && (
 					<button
 						type="button"
 						className="bc-nav-link bc-nav-button"

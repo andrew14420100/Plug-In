@@ -43,6 +43,8 @@ export interface DashboardPayload {
 	palettes: Record< string, string >;
 	options: { allow_hide_wp_menu: boolean };
 	links: { wp_dashboard: string; recovery: string };
+	/** Logo ufficiale, presente solo nei pacchetti che lo includono. */
+	brand_logo?: string;
 }
 
 export interface AuditItem {

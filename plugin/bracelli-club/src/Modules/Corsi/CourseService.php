@@ -33,6 +33,9 @@ final class CourseService {
 	public const ABSENT         = 'absent';
 	public const PAST_DAYS      = 30;
 
+	/** Campi di un orario confrontati e registrati nello storico. */
+	public const SLOT_KEYS = [ 'weekday', 'start_time', 'end_time', 'teacher_id', 'room_id', 'location' ];
+
 	/**
 	 * Funzione che restituisce la data odierna del sito (Y-m-d).
 	 *
@@ -41,12 +44,35 @@ final class CourseService {
 	private $today;
 
 	/**
+	 * Sale e controllo delle sovrapposizioni.
+	 *
+	 * @var RoomService
+	 */
+	private RoomService $rooms;
+
+	/**
 	 * @param CourseRepository $repo  Dati.
 	 * @param AuditLogger      $audit Registro attività.
 	 * @param callable|null    $today Data odierna (sostituibile nei test); predefinita: fuso orario del sito.
+	 * @param RoomService|null $rooms Sale (predefinito: creato sugli stessi dati).
 	 */
-	public function __construct( private CourseRepository $repo, private AuditLogger $audit, ?callable $today = null ) {
+	public function __construct( private CourseRepository $repo, private AuditLogger $audit, ?callable $today = null, ?RoomService $rooms = null ) {
 		$this->today = $today ?? static fn(): string => (string) wp_date( 'Y-m-d' );
+		$this->rooms = $rooms ?? new RoomService( $repo, $audit );
+	}
+
+	/**
+	 * Registro attività.
+	 */
+	public function audit(): AuditLogger {
+		return $this->audit;
+	}
+
+	/**
+	 * Sale.
+	 */
+	public function rooms(): RoomService {
+		return $this->rooms;
 	}
 
 	/**
@@ -408,11 +434,12 @@ final class CourseService {
 	}
 
 	/**
-	 * Modifica giorno, orario, insegnante e sede di un orario.
+	 * Modifica giorno, orario, insegnante, sala e sede di un orario attivo o da confermare.
+	 * Una sala già occupata nella stessa fascia blocca il salvataggio (controllo sul server, con lock).
 	 *
 	 * @param int                  $actor Utente.
 	 * @param int                  $id    Orario.
-	 * @param array<string, mixed> $input weekday, start_time, end_time, teacher_id, location, apply_course (non validati).
+	 * @param array<string, mixed> $input weekday, start_time, end_time, teacher_id, room_id, location, apply_course (non validati).
 	 * @return array{ok: bool, code: string, errors: array<string, string>, id: int}
 	 */
 	public function update_slot( int $actor, int $id, array $input ): array {
@@ -423,17 +450,36 @@ final class CourseService {
 		if ( null === $slot ) {
 			return $this->fail( 'not_found' );
 		}
-		if ( 'active' !== $slot['status'] ) {
+		if ( ! in_array( $slot['status'], [ 'active', 'draft' ], true ) ) {
 			return $this->fail( 'slot_cancelled' );
 		}
-		[ $data, $errors ] = $this->validate_slot( $input );
+		[ $data, $errors ] = $this->validate_slot( $input, (int) $slot['room_id'] );
 		if ( [] !== $errors ) {
 			return $this->fail( 'invalid', $errors );
 		}
-		$keys   = [ 'weekday', 'start_time', 'end_time', 'teacher_id', 'location' ];
+		return $this->rooms->locked( fn(): array => $this->save_slot_update( $actor, $slot, $data, ! empty( $input['apply_course'] ) ) );
+	}
+
+	/**
+	 * Parte di update_slot eseguita sotto lock.
+	 *
+	 * @param int                  $actor Utente.
+	 * @param array<string, mixed> $slot  Orario attuale.
+	 * @param array<string, mixed> $data  Valori validati.
+	 * @param bool                 $apply Applica l'insegnante agli altri orari attivi del corso.
+	 * @return array{ok: bool, code: string, errors: array<string, string>, id: int}
+	 */
+	private function save_slot_update( int $actor, array $slot, array $data, bool $apply ): array {
+		$id = (int) $slot['id'];
+		if ( 'active' === $slot['status'] ) {
+			$conflicts = $this->rooms->conflicts( [ [ 'id' => $id ] + array_intersect_key( $data, array_flip( [ 'room_id', 'weekday', 'start_time', 'end_time' ] ) ) ] );
+			if ( [] !== $conflicts ) {
+				return $this->fail( 'room_conflict', [ 'room_id' => RoomService::describe( $conflicts ) ] );
+			}
+		}
+		$keys   = self::SLOT_KEYS;
 		$before = array_intersect_key( $slot, array_flip( $keys ) );
 		$after  = array_intersect_key( $data, array_flip( $keys ) );
-		$apply  = ! empty( $input['apply_course'] );
 		if ( $before == $after && ! $apply ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- confronto di valori, tipi già normalizzati.
 			return $this->ok( 'unchanged', $id );
 		}
@@ -464,7 +510,7 @@ final class CourseService {
 	 *
 	 * @param int                  $actor     Utente.
 	 * @param int                  $course_id Corso.
-	 * @param array<string, mixed> $input     weekday, start_time, end_time, teacher_id, location (non validati).
+	 * @param array<string, mixed> $input     weekday, start_time, end_time, teacher_id, room_id, location (non validati).
 	 * @return array{ok: bool, code: string, errors: array<string, string>, id: int}
 	 */
 	public function add_slot( int $actor, int $course_id, array $input ): array {
@@ -477,6 +523,22 @@ final class CourseService {
 		[ $data, $errors ] = $this->validate_slot( $input );
 		if ( [] !== $errors ) {
 			return $this->fail( 'invalid', $errors );
+		}
+		return $this->rooms->locked( fn(): array => $this->insert_slot( $actor, $course_id, $data ) );
+	}
+
+	/**
+	 * Parte di add_slot eseguita sotto lock.
+	 *
+	 * @param int                  $actor     Utente.
+	 * @param int                  $course_id Corso.
+	 * @param array<string, mixed> $data      Valori validati.
+	 * @return array{ok: bool, code: string, errors: array<string, string>, id: int}
+	 */
+	private function insert_slot( int $actor, int $course_id, array $data ): array {
+		$conflicts = $this->rooms->conflicts( [ [ 'id' => 0 ] + array_intersect_key( $data, array_flip( [ 'room_id', 'weekday', 'start_time', 'end_time' ] ) ) ] );
+		if ( [] !== $conflicts ) {
+			return $this->fail( 'room_conflict', [ 'room_id' => RoomService::describe( $conflicts ) ] );
 		}
 		$id = $this->repo->insert(
 			$this->repo->slots_table(),
@@ -511,7 +573,7 @@ final class CourseService {
 		if ( null === $slot ) {
 			return $this->fail( 'not_found' );
 		}
-		if ( 'active' !== $slot['status'] ) {
+		if ( ! in_array( $slot['status'], [ 'active', 'draft' ], true ) ) {
 			return $this->fail( 'slot_cancelled' );
 		}
 		$now = gmdate( 'Y-m-d H:i:s' );
@@ -564,10 +626,11 @@ final class CourseService {
 	/**
 	 * Valida i dati di un orario. L'insegnante deve essere un account con la capability "Insegnante" (o nessuno).
 	 *
-	 * @param array<string, mixed> $input Dati grezzi.
-	 * @return array{0: array{weekday: int, start_time: string, end_time: string, teacher_id: int, location: string}, 1: array<string, string>}
+	 * @param array<string, mixed> $input     Dati grezzi.
+	 * @param int                  $keep_room Sala attuale dell'orario (resta valida anche se archiviata).
+	 * @return array{0: array{weekday: int, start_time: string, end_time: string, teacher_id: int, room_id: int, location: string}, 1: array<string, string>}
 	 */
-	public function validate_slot( array $input ): array {
+	public function validate_slot( array $input, int $keep_room = 0 ): array {
 		$errors  = [];
 		$weekday = isset( $input['weekday'] ) ? absint( $input['weekday'] ) : 0;
 		$start   = is_string( $input['start_time'] ?? null ) ? trim( $input['start_time'] ) : '';
@@ -590,12 +653,17 @@ final class CourseService {
 		if ( $teacher > 0 && ! user_can( $teacher, Capabilities::CORSI_TEACH ) ) {
 			$errors['teacher_id'] = __( 'Scegli un insegnante valido.', 'bracelli-club' );
 		}
+		[ $room, $room_error ] = $this->rooms->validate_choice( $input['room_id'] ?? 0, $keep_room );
+		if ( '' !== $room_error ) {
+			$errors['room_id'] = $room_error;
+		}
 		return [
 			[
 				'weekday'    => $weekday,
 				'start_time' => $start . ':00',
 				'end_time'   => $end . ':00',
 				'teacher_id' => $teacher,
+				'room_id'    => $room,
 				'location'   => $place,
 			],
 			$errors,
@@ -616,10 +684,10 @@ final class CourseService {
 	 *
 	 * @param int                  $actor Utente.
 	 * @param array<string, mixed> $slot  Orario attuale.
-	 * @param array<string, mixed> $after Nuovi valori (weekday, start_time, end_time, teacher_id, location).
+	 * @param array<string, mixed> $after Nuovi valori (weekday, start_time, end_time, teacher_id, room_id, location).
 	 */
 	private function save_slot_change( int $actor, array $slot, array $after ): void {
-		$keys   = [ 'weekday', 'start_time', 'end_time', 'teacher_id', 'location' ];
+		$keys   = self::SLOT_KEYS;
 		$before = array_intersect_key( $slot, array_flip( $keys ) );
 		$extra  = [
 			'manual'     => 1,
