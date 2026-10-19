@@ -63,7 +63,12 @@ final class SegreteriaSection implements SectionInterface {
 
 	/** {@inheritDoc} */
 	public function handle( Portal $portal, int $user, string $action, int $id ): void {
-		$portal->redirect( [ 'vista' => 'segreteria', 'esito' => 'invalid' ] );
+		$portal->redirect(
+			[
+				'vista' => 'segreteria',
+				'esito' => 'invalid',
+			]
+		);
 	}
 
 	/** {@inheritDoc} */
@@ -87,7 +92,7 @@ final class SegreteriaSection implements SectionInterface {
 				static fn( array $course ): bool => 'active' === ( $course['status'] ?? '' )
 			)
 		);
-		$active_slots    = array_values(
+		$active_slots   = array_values(
 			array_filter(
 				$slots,
 				static fn( array $slot ): bool => 'active' === ( $slot['course_status'] ?? '' )
