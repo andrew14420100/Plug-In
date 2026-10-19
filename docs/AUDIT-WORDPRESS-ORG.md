@@ -126,8 +126,8 @@ Ambiente: PHP 8.3.6, MariaDB 10.11.14, Apache, WordPress 7.1.3 (italiano) e 6.9.
 2. **Licenza.** Serve una licenza GPLv2 o successiva (o compatibile) per tutto il codice. È una scelta legale e commerciale: va aggiunta a header, readme, `composer.json` e a un file `LICENSE`.
 3. **Account e marchio.** Serve un utente WordPress.org per `Contributors`, e la conferma che chi invia rappresenta il Bracelli Club. Il logo del 35° anniversario non è nel candidato e non va pubblicato senza i diritti.
 4. **Segnaposto e prototipi.** Per la directory vanno tolti o nascosti:
-   - il widget «Aree gestionali — Fase N»;
-   - il riferimento a «Fase 1» nella diagnostica;
+   - il widget «Aree gestionali — Fase N» (dalla 0.4.1 sostituito da «Avanzamento del progetto», che però mostra ancora fasi pianificate);
+   - il riferimento a «Fase 1» nella diagnostica (corretto nella 0.4.1);
    - l'etichetta «prototipo» dei Turni, oppure va escluso il modulo.
 
    Il widget fa parte del collaudo di Fase 1 approvato, quindi non l'ho tolto.

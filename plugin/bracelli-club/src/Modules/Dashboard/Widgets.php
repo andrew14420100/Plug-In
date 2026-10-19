@@ -67,7 +67,7 @@ final class Widgets {
 		$titles = [
 			'welcome'   => __( 'Benvenuto', 'bracelli-club' ),
 			'favorites' => __( 'Preferiti', 'bracelli-club' ),
-			'areas'     => __( 'Aree gestionali', 'bracelli-club' ),
+			'areas'     => __( 'Avanzamento del progetto', 'bracelli-club' ),
 			'modules'   => __( 'Stato moduli', 'bracelli-club' ),
 			'health'    => __( 'Salute del sistema', 'bracelli-club' ),
 			'activity'  => __( 'Attività recenti', 'bracelli-club' ),
@@ -114,41 +114,7 @@ final class Widgets {
 				}
 				return [ 'items' => $items ];
 			case 'areas':
-				return [
-					'items' => [
-						[
-							'id'    => 'members',
-							'label' => __( 'Soci e tessere', 'bracelli-club' ),
-							'phase' => 2,
-						],
-						[
-							'id'    => 'courses',
-							'label' => __( 'Corsi e presenze iscritti', 'bracelli-club' ),
-							'phase' => 4,
-						],
-						[
-							'id'    => 'bookings',
-							'label' => __( 'Prenotazioni', 'bracelli-club' ),
-							'phase' => 4,
-						],
-						[
-							'id'    => 'billing',
-							'label' => __( 'Quote e incassi', 'bracelli-club' ),
-							'phase' => 5,
-						],
-						[
-							'id'    => 'documents',
-							'label' => __( 'Documenti', 'bracelli-club' ),
-							'phase' => 5,
-						],
-						[
-							'id'    => 'site',
-							'label' => __( 'Sito, SEO e moduli web', 'bracelli-club' ),
-							'phase' => 6,
-						],
-					],
-					'note'  => __( 'Moduli non ancora installati: nessun dato disponibile.', 'bracelli-club' ),
-				];
+				return Roadmap::widget();
 			case 'modules':
 				$items  = [];
 				$counts = [

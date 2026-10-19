@@ -4,7 +4,7 @@ Tags: sports club, members area, attendance, courses, staff
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.4.0
+Stable tag: 0.4.1
 
 Management tools for the Bracelli Club sports centre: modular admin dashboard, private members area, course timetable and staff attendance.
 
@@ -54,6 +54,10 @@ Yes for evaluation. Playground uses SQLite instead of MySQL/MariaDB, so it is no
 MySQL 8.0 and MariaDB 10.11 are tested.
 
 == Changelog ==
+
+= 0.4.1 =
+* Dashboard: the "Project progress" widget shows the current phases of the courses module with their real status (completed, in progress, planned) instead of the old placeholder areas.
+* The dashboard sources now include the interface of the 0.1.5 design (official logo when the package provides it, welcome and menu texts).
 
 = 0.4.0 =
 * Courses, phase 1: create, edit, archive and duplicate courses from the private area, with history; rooms managed by the front office, room per timetable entry or per course, server-side blocking of overlapping lessons in the same room.

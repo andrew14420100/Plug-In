@@ -1,6 +1,6 @@
 # Modulo Corsi — Fase 1: catalogo e sale
 
-Plugin 0.4.0 nel repository; pacchetto di collaudo 0.1.10 sulla grafica 0.1.5. Branch locale `feature/corsi-fase-1`, basato su `audit/wordpress-org` (commit 2401bc7, CI verde). Prova solo in locale: nessun merge, nessuna release.
+Plugin 0.4.0 nel repository (0.4.1 con le fasi aggiornate nella dashboard); pacchetti di collaudo 0.1.10 e 0.1.11 sulla grafica 0.1.5. Branch `feature/corsi-fase-1` (PR #5), basato su `audit/wordpress-org` (PR #4, commit 2401bc7, CI verde). Prova solo in locale: nessun merge, nessuna release.
 
 ## 1. Requisiti approvati per questa fase
 

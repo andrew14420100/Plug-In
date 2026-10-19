@@ -15,7 +15,7 @@ test.describe( 'Dashboard amministratore', () => {
 		for ( const title of [
 			'Benvenuto',
 			'Preferiti',
-			'Aree gestionali',
+			'Avanzamento del progetto',
 			'Stato moduli',
 			'Salute del sistema',
 			'Attività recenti',
@@ -24,9 +24,23 @@ test.describe( 'Dashboard amministratore', () => {
 				page.getByRole( 'heading', { level: 3, name: title } )
 			).toBeVisible();
 		}
-		await expect( page.getByText( 'Non ancora disponibile' ) ).toHaveCount(
-			6
+		const progress = page.locator( '.bc-progress' );
+		await expect( progress.locator( '.bc-phase' ) ).toHaveCount( 5 );
+		await expect( progress.locator( '.bc-phase' ).nth( 0 ) ).toContainText(
+			'Fase 0 — Stabilizzazione e audit'
 		);
+		await expect( progress.locator( '.bc-phase' ).nth( 0 ) ).toContainText(
+			'Completata'
+		);
+		await expect( progress.locator( '.bc-phase' ).nth( 1 ) ).toContainText(
+			'In corso'
+		);
+		await expect( progress.locator( '.is-planned' ) ).toHaveCount( 6 );
+		await expect( progress.getByRole( 'progressbar' ) ).toHaveAttribute(
+			'aria-valuenow',
+			'1'
+		);
+		await expect( progress ).not.toContainText( 'Non ancora disponibile' );
 		await shot( page, '01-dashboard-admin-chiaro' );
 		expect( errors ).toEqual( [] );
 	} );
@@ -36,8 +50,13 @@ test.describe( 'Dashboard amministratore', () => {
 	} ) => {
 		await login( page, 'admin' );
 		await waitForDashboard( page );
-		await page.getByRole( 'radio', { name: 'Scuro' } ).click();
-		await page.getByRole( 'radio', { name: /Aurora/ } ).click();
+		await page
+			.getByRole( 'button', { name: 'Scuro', exact: true } )
+			.click();
+		await page.getByRole( 'button', { name: /Aurora/ } ).click();
+		await expect(
+			page.getByRole( 'button', { name: 'Scuro', exact: true } )
+		).toHaveAttribute( 'aria-pressed', 'true' );
 		await expect( page.getByText( 'Preferenze salvate' ) ).toBeVisible();
 		await page.reload();
 		await waitForDashboard( page );
@@ -55,8 +74,10 @@ test.describe( 'Dashboard amministratore', () => {
 		await shot( page, '03-moduli-scuro' );
 
 		await page.goto( '/wp-admin/admin.php?page=bracelli' );
-		await page.getByRole( 'radio', { name: 'Automatico' } ).click();
-		await page.getByRole( 'radio', { name: /Bracelli/ } ).click();
+		await page
+			.getByRole( 'button', { name: 'Automatico', exact: true } )
+			.click();
+		await page.getByRole( 'button', { name: /^Bracelli/ } ).click();
 		await expect( page.getByText( 'Preferenze salvate' ) ).toBeVisible();
 	} );
 
@@ -77,7 +98,7 @@ test.describe( 'Dashboard amministratore', () => {
 			.click();
 		await page
 			.getByRole( 'button', {
-				name: /Nascondi widget — Aree gestionali/,
+				name: /Nascondi widget — Avanzamento del progetto/,
 			} )
 			.click();
 		await page
@@ -95,7 +116,10 @@ test.describe( 'Dashboard amministratore', () => {
 			page.getByRole( 'link', { name: 'Profilo personale' } )
 		).toHaveAttribute( 'href', /profile\.php$/ );
 		await expect(
-			page.getByRole( 'heading', { level: 3, name: 'Aree gestionali' } )
+			page.getByRole( 'heading', {
+				level: 3,
+				name: 'Avanzamento del progetto',
+			} )
 		).toHaveCount( 0 );
 		const titles = await page.locator( '.bc-widget h3' ).allTextContents();
 		expect( titles.indexOf( 'Preferiti' ) ).toBe( 0 );

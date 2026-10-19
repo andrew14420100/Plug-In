@@ -14,11 +14,11 @@ export default function Welcome( { data }: { data: WelcomeData } ) {
 			<p>
 				{ data.context === 'admin'
 					? __(
-							'Stai usando il contesto amministratore: vedi stato del sistema, moduli e registro attività.',
+							'Per iniziare: 1) apri Diagnostica e controlla gli avvisi; 2) in Moduli leggi le descrizioni e lascia attivi quelli obbligatori; 3) usa Impostazioni per le regole comuni. Personalizza cambia solo l’aspetto del tuo account. Area riservata e Corsi (catalogo, sale, orari e presenze degli insegnanti) sono in prova: usa solo account e dati fittizi. Soci, tessere, iscrizioni, prenotazioni, incassi e sincronizzazione non sono ancora gestiti.',
 							'bracelli-club'
 						)
 					: __(
-							'Stai usando il contesto dipendente: vedi i tuoi collegamenti rapidi e le aree a cui hai accesso.',
+							'Qui trovi le pagine abilitate dal tuo ruolo. Personalizza cambia solo l’aspetto della tua dashboard. Se una voce manca o compare un avviso, chiedi all’amministratore.',
 							'bracelli-club'
 						) }
 			</p>

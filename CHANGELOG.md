@@ -4,6 +4,13 @@ Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it/1.1.0/); ver
 
 ## [Non rilasciato]
 
+### Modificato — Fasi nella dashboard (plugin 0.4.1; pacchetto di collaudo 0.1.11, non rilasciato)
+- Il widget «Aree gestionali» (vecchie fasi 2–6 con «Non ancora disponibile») diventa «Avanzamento del progetto»: fasi 0–4 del modulo Corsi nell'ordine del piano attuale, con stato reale (Completata / In corso / Pianificata, sempre in testo e simbolo oltre al colore) e indicatore «N di 5 fasi completate»; le altre aree del gestionale compaiono come «Non ancora avviata». Fonte unica: `src/Modules/Dashboard/Roadmap.php`.
+- Stati della 0.4.1: Fase 0 completata (CI verde); Fase 1 in corso (sviluppata, in collaudo); Fasi 2–4 pianificate. Un test verifica che gli stati corrispondano alle funzioni presenti nel codice.
+- I sorgenti React includono ora le modifiche dell'interfaccia 0.1.5 (logo ufficiale quando il pacchetto lo fornisce, testi di benvenuto e del menu WordPress, selettori di tema e tavolozza): il pacchetto con la grafica 0.1.5 non usa più un bundle senza sorgenti. Testi di benvenuto aggiornati (non dicono più che i corsi non sono gestiti).
+- Diagnostica: tolto il riferimento obsoleto alla «Fase 1» nel controllo WP-Cron.
+- Test: il ruolo legacy «Gestore corsi» non deve esistere sulle nuove installazioni (correzione del test di attivazione emersa in CI).
+
 ### Aggiunto — Corsi, fase 1: catalogo e sale (plugin 0.4.0; pacchetto di collaudo 0.1.10, non rilasciato)
 - Catalogo nell'area riservata: nuovo corso, modifica con storico, archiviazione e ripristino (nulla si elimina), duplicazione con orari «da confermare»; schede con descrizione, livello e colore; ricerca e filtri per disciplina e stato nella scheda «Corsi e orari».
 - Sale: elenco gestito dalla segreteria (nessuna sala precaricata o assegnata in automatico), sala per orario e per tutto il corso, blocco sul server delle sovrapposizioni nella stessa sala e fascia; il vecchio testo «sede» resta visibile finché non c'è una sala.

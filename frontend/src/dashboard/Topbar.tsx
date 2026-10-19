@@ -1,4 +1,5 @@
 import { __ } from '@wordpress/i18n';
+import Brand from '../shared/brand';
 import Icon from '../shared/Icon';
 import type { Preferences, Theme } from '../shared/types';
 
@@ -37,7 +38,7 @@ export default function Topbar( {
 		<header className="bc-header bc-topbar">
 			<div>
 				<p className="bc-eyebrow">
-					Bracelli Club ·{ ' ' }
+					<Brand wordmark={ <>Bracelli Club ·</> } />{ ' ' }
 					{ context === 'admin'
 						? __( 'Area amministratore', 'bracelli-club' )
 						: __( 'Area personale', 'bracelli-club' ) }
@@ -62,15 +63,14 @@ export default function Topbar( {
 				</span>
 				<div
 					className="bc-segmented"
-					role="radiogroup"
+					role="group"
 					aria-label={ __( 'Tema', 'bracelli-club' ) }
 				>
 					{ THEMES.map( ( theme ) => (
 						<button
 							key={ theme.id }
 							type="button"
-							role="radio"
-							aria-checked={ prefs.theme === theme.id }
+							aria-pressed={ prefs.theme === theme.id }
 							className={
 								prefs.theme === theme.id ? 'is-active' : ''
 							}
@@ -86,15 +86,14 @@ export default function Topbar( {
 				</div>
 				<div
 					className="bc-swatches"
-					role="radiogroup"
+					role="group"
 					aria-label={ __( 'Tavolozza', 'bracelli-club' ) }
 				>
 					{ Object.entries( palettes ).map( ( [ id, label ] ) => (
 						<button
 							key={ id }
 							type="button"
-							role="radio"
-							aria-checked={ prefs.palette === id }
+							aria-pressed={ prefs.palette === id }
 							className={ `bc-swatch bc-swatch--${ id }${ prefs.palette === id ? ' is-active' : '' }` }
 							onClick={ () => onPalette( id ) }
 							title={ label }

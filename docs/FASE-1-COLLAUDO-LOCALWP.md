@@ -30,7 +30,7 @@ Procedura per verificare personalmente il plugin **senza toccare il sito pubblic
 | # | Azione | Risultato atteso | OK |
 | --- | --- | --- | --- |
 | 1 | Esci e rientra come amministratore | Si apre la dashboard Bracelli | ☐ |
-| 2 | Guarda i widget | Benvenuto, Preferiti, Aree gestionali ("Non ancora disponibile"), Stato moduli, Salute del sistema, Attività recenti; nessun numero inventato | ☐ |
+| 2 | Guarda i widget | Benvenuto, Preferiti, Avanzamento del progetto (fasi del modulo Corsi con stato Completata / In corso / Pianificata e altre aree «Non ancora avviata»), Stato moduli, Salute del sistema, Attività recenti; nessun numero inventato | ☐ |
 | 3 | Tema: Scuro, poi tavolozza "Aurora"; ricarica la pagina | Le scelte restano; anche Moduli e Impostazioni sono scuri | ☐ |
 | 4 | **Personalizza** → aggiungi "Il mio profilo" ai preferiti, nascondi un widget, sposta un widget | Dopo il ricaricamento le scelte restano | ☐ |
 | 5 | Menu laterale → **Nascondi menu WordPress**, poi apri Articoli | Menu WordPress nascosto, pulsante "Mostra menu WordPress" in basso a sinistra; un clic lo riapre | ☐ |

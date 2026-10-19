@@ -343,7 +343,7 @@ export default function Customize( {
 					{ allowHideWpMenu && (
 						<p className="bc-muted bc-small">
 							{ __(
-								'Il menu WordPress si nasconde dalla voce in fondo al menu laterale; il pulsante per riaprirlo resta sempre visibile.',
+								'Puoi nascondere il menu WordPress dalla voce in fondo alla barra Bracelli. Quando è nascosto, compare un solo pulsante “Mostra menu WordPress” in alto a destra. La scelta è personale e non cambia i permessi.',
 								'bracelli-club'
 							) }
 						</p>

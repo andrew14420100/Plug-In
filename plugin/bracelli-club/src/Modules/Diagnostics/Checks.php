@@ -106,7 +106,7 @@ final class Checks {
 			__( 'WP-Cron', 'bracelli-club' ),
 			self::INFO,
 			$cron_disabled ? __( 'disattivato (serve un cron di sistema)', 'bracelli-club' ) : __( 'attivo (dipende dalle visite al sito)', 'bracelli-club' ),
-			__( 'In Fase 1 il plugin non pianifica attività. La scelta del cron per TopHost va verificata (Q307).', 'bracelli-club' )
+			__( 'Il plugin non pianifica attività automatiche. La scelta del cron per TopHost va verificata prima di introdurne (Q307).', 'bracelli-club' )
 		);
 
 		$checks[] = $this->item(

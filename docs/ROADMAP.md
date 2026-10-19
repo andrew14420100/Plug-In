@@ -45,6 +45,18 @@ Architettura completa pianificata adesso, **sviluppo una fase alla volta**, senz
 
 ## Fase 4 — Corsi, istruttori, presenze e prenotazioni
 
+> **Aggiornamento (ottobre 2026):** la parte «Corsi» è stata anticipata e ha un piano proprio, mostrato nella dashboard (widget «Avanzamento del progetto», fonte unica `src/Modules/Dashboard/Roadmap.php`):
+>
+> | Fase Corsi | Contenuto | Stato nella versione 0.4.1 |
+> | --- | --- | --- |
+> | 0 — Stabilizzazione e audit | correzioni di sicurezza, controlli e conservazione dei dati | completata (CI verde, PR #4) |
+> | 1 — Catalogo e sale | corsi, modifica e archiviazione, duplicazione, sale e sovrapposizioni | in corso: sviluppata, in collaudo (PR #5) |
+> | 2 — Calendario, eccezioni e stagioni | festività, chiusure, sospensioni, spostamenti, recuperi, lezioni straordinarie | pianificata |
+> | 3 — Insegnanti, sostituzioni e presenze | più insegnanti, sostituzioni per data, stati delle lezioni, richieste e notifiche | pianificata |
+> | 4 — Calendari e report | vista giornaliera e settimanale, filtri, stampa, registri, esportazioni | pianificata |
+>
+> Iscrizioni ai corsi, capienza e presenze degli iscritti restano fuori ambito finché non si apre la fase soci (Fase 2 della roadmap generale). Una fase diventa «completata» solo con funzioni implementate e verificate, mai perché compare in roadmap.
+
 - Corsi/lezioni/istruttori/categorie, calendari ricorrenti, manuale presenze 3 stati con autosave e storico.
 - Prenotazioni pubbliche/privati per risorse, disponibilità e conflitti, conferma email, cancellazioni e privacy; tariffe configurabili.
 - Liste d'attesa Q208 ancora da decidere.

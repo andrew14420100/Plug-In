@@ -320,7 +320,104 @@
 	}
 }
 
-/* Aree future */
+/* Avanzamento del progetto */
+.bc-progress-title {
+	margin: 0 0 8px;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.bc-progress-bar {
+	height: 8px;
+	overflow: hidden;
+	border-radius: 999px;
+	background: var(--bc-border);
+}
+
+.bc-progress-fill {
+	display: block;
+	height: 100%;
+	border-radius: inherit;
+	background: var(--bc-success);
+}
+
+.bc-phases {
+	display: grid;
+	gap: 8px;
+	margin: 12px 0 16px;
+	padding: 0;
+	list-style: none;
+}
+
+.bc-phase {
+	display: grid;
+	grid-template-columns: 24px minmax(0, 1fr) auto;
+	gap: 4px 10px;
+	align-items: start;
+	padding: 10px 12px;
+	border: 1px solid var(--bc-border);
+	border-radius: var(--bc-radius-sm);
+
+	&.is-in_progress {
+		border-color: var(--bc-accent-solid);
+	}
+
+	&.is-planned {
+		border-style: dashed;
+	}
+}
+
+.bc-phase-mark {
+	font-weight: 700;
+	line-height: 1.4;
+	text-align: center;
+
+	.is-completed & {
+		color: var(--bc-success);
+	}
+
+	.is-in_progress & {
+		color: var(--bc-accent);
+	}
+
+	.is-planned & {
+		color: var(--bc-muted);
+	}
+}
+
+.bc-phase-body {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.bc-phase-title {
+	font-weight: 600;
+}
+
+.bc-phase-desc {
+	font-size: 13px;
+	color: var(--bc-muted);
+}
+
+.bc-phase-state {
+	white-space: nowrap;
+
+	&.is-completed {
+		color: var(--bc-success);
+	}
+
+	&.is-in_progress {
+		color: var(--bc-accent);
+	}
+
+	&.is-planned {
+		color: var(--bc-muted);
+	}
+}
+
+/* Aree non ancora avviate */
 .bc-areas {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

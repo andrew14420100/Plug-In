@@ -19,7 +19,7 @@ Versione plugin: 0.1.0
 | `dashboard` — Dashboard | no | Dashboard React come pagina iniziale dopo il login (disattivabile per utente), contesti amministratore/dipendente, temi automatico/chiaro/scuro, 5 tavolozze, menu laterale riordinabile/nascondibile, widget riordinabili (trascinamento + pulsanti accessibili) e nascondibili, preferiti con icona ed etichetta, menu WordPress nascondibile con pulsante sempre visibile |
 | `diagnostics` — Diagnostica | no | 15 controlli essenziali (versioni, limiti, estensioni, cron, HTTPS, migrazioni, tabelle, moduli, modalità sicura) e diagnostica approfondita solo su richiesta |
 
-**Widget con dati reali soltanto:** benvenuto, preferiti, stato moduli (conteggi reali), salute del sistema, attività recenti. Le aree delle fasi future (soci e tessere, corsi, prenotazioni, incassi, documenti, sito/SEO) sono mostrate come **"Non ancora disponibile — Fase N"**, senza alcun numero (verificato da test PHP, Jest ed E2E).
+**Widget con dati reali soltanto:** benvenuto, preferiti, stato moduli (conteggi reali), salute del sistema, attività recenti. Le aree delle fasi future (soci e tessere, corsi, prenotazioni, incassi, documenti, sito/SEO) sono mostrate come **"Non ancora disponibile — Fase N"**, senza alcun numero (verificato da test PHP, Jest ed E2E). *Nota successiva (0.4.1): il widget è diventato «Avanzamento del progetto», con le fasi attuali del modulo Corsi; vedi `docs/ROADMAP.md`.*
 
 **Non incluso (come da roadmap e indicazioni):** soci, tessere, coda, import, connettore Club Manager, documenti, pagamenti, AI, aggiornamenti automatici da GitHub (rinviati su richiesta dell'utente).
 
