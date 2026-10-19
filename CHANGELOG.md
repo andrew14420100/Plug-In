@@ -4,6 +4,12 @@ Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it/1.1.0/); ver
 
 ## [Non rilasciato]
 
+### Aggiunto — Area Segreteria, fase 2: archivio soci (in verifica)
+- Archivio anagrafico separato dagli account WordPress, con creazione, modifica, ricerca, filtri, paginazione e stati attivo/sospeso/archiviato.
+- Validazione server-side, rilevamento email duplicate, archiviazione non distruttiva e registro attività senza dati di contatto nel log.
+- Nuova capability dedicata e migrazioni database additive; accesso collegato dalla panoramica della segreteria.
+- Test d'integrazione e criteri di accettazione in docs/SEGRETERIA-FASE-2.md. Non rilasciato finché CI e verifica WordPress non sono verdi.
+
 ### Aggiunto — Area Segreteria, fase 1 (in verifica)
 - Nuova panoramica iniziale per gli utenti autorizzati alla gestione dei corsi.
 - Indicatori ricavati dal database per corsi, orari, sale e assegnazioni mancanti.

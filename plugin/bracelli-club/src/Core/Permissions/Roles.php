@@ -36,7 +36,7 @@ final class Roles {
 		return [
 			self::SEGRETERIA    => [
 				'label' => 'Segreteria Bracelli',
-				'caps'  => [ Capabilities::DASHBOARD_VIEW, Capabilities::TURNI_MANAGE, Capabilities::CORSI_VIEW, Capabilities::CORSI_MANAGE ],
+				'caps'  => [ Capabilities::DASHBOARD_VIEW, Capabilities::TURNI_MANAGE, Capabilities::CORSI_VIEW, Capabilities::CORSI_MANAGE, Capabilities::SOCI_MANAGE ],
 			],
 			// Insegnante: vede solo le proprie lezioni e registra la propria presenza.
 			self::ISTRUTTORE    => [
