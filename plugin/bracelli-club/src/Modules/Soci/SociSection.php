@@ -771,7 +771,7 @@ final class SociSection implements SectionInterface {
 			}
 
 			$data['birth_date'] = $this->normalize_birth_date( $data['birth_date'] );
-			$raw_birth         = isset( $columns['birth_date'] ) ? trim( (string) ( $cells[ $columns['birth_date'] ] ?? '' ) ) : '';
+			$raw_birth          = isset( $columns['birth_date'] ) ? trim( (string) ( $cells[ $columns['birth_date'] ] ?? '' ) ) : '';
 			if ( '' !== $raw_birth && '' === $data['birth_date'] ) {
 				$errors[] = __( 'Data di nascita non valida: usa AAAA-MM-GG o GG/MM/AAAA.', 'bracelli-club' );
 			}
