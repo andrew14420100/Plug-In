@@ -62,6 +62,8 @@ final class SociSection implements SectionInterface {
 			'created'   => [ 'success', __( 'Anagrafica creata.', 'bracelli-club' ) ],
 			'updated'   => [ 'success', __( 'Anagrafica aggiornata.', 'bracelli-club' ) ],
 			'archived'  => [ 'success', __( 'Socio archiviato. Il record resta nello storico.', 'bracelli-club' ) ],
+			'restored'  => [ 'success', __( 'Socio riattivato.', 'bracelli-club' ) ],
+			'unchanged' => [ 'info', __( 'Nessuna modifica da salvare.', 'bracelli-club' ) ],
 			'not_found' => [ 'error', __( 'Socio non trovato.', 'bracelli-club' ) ],
 			'duplicate' => [ 'error', __( 'Esiste già un socio con questa email.', 'bracelli-club' ) ],
 		];
@@ -71,8 +73,11 @@ final class SociSection implements SectionInterface {
 	public function handle( Portal $portal, int $user, string $action, int $id ): void {
 		$this->portal = $portal;
 		if ( 'save' === $action ) {
-			$input  = $portal->posted( [ 'first_name', 'last_name', 'email', 'phone', 'birth_date', 'address', 'city', 'postal_code', 'status', 'notes' ] );
-			$result = $this->service->save( $user, $id, $input );
+			$input = $portal->posted( [ 'first_name', 'last_name', 'email', 'phone', 'birth_date', 'address', 'city', 'postal_code', 'status', 'notes' ] );
+			$save_input = $input;
+			$save_input['guardian_ids'] = $this->posted_guardian_ids();
+			$save_input['guardian_ids_present'] = '1';
+			$result = $this->service->save( $user, $id, $save_input );
 			if ( $result['ok'] ) {
 				$portal->redirect(
 					[
@@ -96,8 +101,9 @@ final class SociSection implements SectionInterface {
 			);
 			return;
 		}
-		if ( 'archive' === $action ) {
-			$result = $this->service->set_status( $user, $id, 'archived' );
+		if ( 'archive' === $action || 'restore' === $action ) {
+			$status = 'archive' === $action ? 'archived' : 'active';
+			$result = $this->service->set_status( $user, $id, $status );
 			$portal->redirect(
 				[
 					'vista' => 'soci',
@@ -122,7 +128,7 @@ final class SociSection implements SectionInterface {
 			return;
 		}
 		if ( 'nuovo-socio' === $view ) {
-			$this->form( null );
+			$this->form( null, $user );
 			return;
 		}
 		if ( 'modifica-socio' === $view ) {
@@ -131,7 +137,7 @@ final class SociSection implements SectionInterface {
 				echo '<div class="bcp-card"><p>' . esc_html__( 'Socio non trovato.', 'bracelli-club' ) . '</p><p><a class="bcp-button" href="' . esc_url( Portal::url( [ 'vista' => 'soci' ] ) ) . '">' . esc_html__( 'Torna all’archivio', 'bracelli-club' ) . '</a></p></div>';
 				return;
 			}
-			$this->form( $member );
+			$this->form( $member, $user );
 			return;
 		}
 		$this->list_view();
@@ -202,7 +208,7 @@ final class SociSection implements SectionInterface {
 	/**
 	 * @param array<string, mixed>|null $member Record esistente o null.
 	 */
-	private function form( ?array $member ): void {
+	private function form( ?array $member, int $user ): void {
 		$id     = (int) ( $member['id'] ?? 0 );
 		$values = $this->portal->old() + [
 			'first_name' => (string) ( $member['first_name'] ?? '' ),
@@ -216,8 +222,24 @@ final class SociSection implements SectionInterface {
 			'status'     => (string) ( $member['status'] ?? 'active' ),
 			'notes'      => (string) ( $member['notes'] ?? '' ),
 		];
+		$family              = $id > 0 ? $this->service->family( $user, $id ) : null;
+		$history             = $id > 0 ? $this->service->history( $user, $id ) : [];
+		$selected_guardians  = $this->selected_guardian_ids( $id );
+		$guardian_candidates = $this->service->candidate_guardians( $user, $id );
+		$duplicates          = $this->service->possible_duplicates(
+			$user,
+			(string) $values['first_name'],
+			(string) $values['last_name'],
+			(string) $values['birth_date'],
+			$id
+		);
+		$form_view = $id > 0 ? 'modifica-socio' : 'nuovo-socio';
+		$form_args = [ 'vista' => $form_view ];
+		if ( $id > 0 ) {
+			$form_args['socio'] = $id;
+		}
 		?>
-<form class="bcp-card bcp-form" method="post" action="<?php echo esc_url( Portal::url() ); ?>">
+<form class="bcp-card bcp-form" method="post" action="<?php echo esc_url( Portal::url( $form_args ) ); ?>">
 		<?php $this->portal->action_fields( 'soci_save', $id ); ?>
 		<?php $this->portal->form_errors(); ?>
 	<div class="bcp-form-grid">
@@ -231,7 +253,25 @@ final class SociSection implements SectionInterface {
 		<div class="bcp-field"><label for="bcp-postal"><?php esc_html_e( 'CAP', 'bracelli-club' ); ?></label><input id="bcp-postal" name="postal_code" maxlength="20" value="<?php echo esc_attr( $values['postal_code'] ); ?>"><?php $this->portal->field_error( 'postal_code' ); ?></div>
 		<div class="bcp-field"><label for="bcp-status"><?php esc_html_e( 'Stato anagrafica', 'bracelli-club' ); ?></label><select id="bcp-status" name="status"><option value="active"<?php selected( $values['status'], 'active' ); ?>><?php esc_html_e( 'Attivo', 'bracelli-club' ); ?></option><option value="suspended"<?php selected( $values['status'], 'suspended' ); ?>><?php esc_html_e( 'Sospeso', 'bracelli-club' ); ?></option></select></div>
 		<div class="bcp-field bcp-field--full"><label for="bcp-notes"><?php esc_html_e( 'Note interne', 'bracelli-club' ); ?></label><textarea id="bcp-notes" name="notes" rows="4" maxlength="4000"><?php echo esc_textarea( $values['notes'] ); ?></textarea><?php $this->portal->field_error( 'notes' ); ?></div>
+		<div class="bcp-field bcp-field--full">
+			<label for="bcp-guardians"><?php esc_html_e( 'Genitori o tutori collegati', 'bracelli-club' ); ?></label>
+			<input type="hidden" name="guardian_ids_present" value="1">
+			<select id="bcp-guardians" name="guardian_ids[]" multiple size="5" aria-describedby="bcp-guardians-help">
+				<?php foreach ( $guardian_candidates as $candidate ) : ?>
+					<option value="<?php echo esc_attr( (string) $candidate['id'] ); ?>"<?php selected( in_array( (int) $candidate['id'], $selected_guardians, true ) ); ?>><?php echo esc_html( $candidate['last_name'] . ' ' . $candidate['first_name'] . ( 'archived' === $candidate['status'] ? ' — ' . __( 'archiviato', 'bracelli-club' ) : '' ) ); ?></option>
+				<?php endforeach; ?>
+			</select>
+			<p id="bcp-guardians-help" class="bcp-muted"><?php esc_html_e( 'Facoltativo. Puoi selezionare più persone; il collegamento non crea account WordPress e non assegna automaticamente accessi.', 'bracelli-club' ); ?></p>
+			<?php $this->portal->field_error( 'guardian_ids' ); ?>
+		</div>
 	</div>
+	<?php if ( [] !== $duplicates ) : ?>
+		<div class="bcp-alert bcp-alert--warning" role="status">
+			<strong><?php esc_html_e( 'Controlla possibili doppioni', 'bracelli-club' ); ?></strong>
+			<p><?php esc_html_e( 'Esistono già anagrafiche con nome e cognome uguali. Verifica che non si tratti della stessa persona.', 'bracelli-club' ); ?></p>
+			<ul><?php foreach ( $duplicates as $duplicate ) : ?><li><?php echo esc_html( $duplicate['last_name'] . ' ' . $duplicate['first_name'] . ( '' !== (string) ( $duplicate['birth_date'] ?? '' ) ? ' — ' . $duplicate['birth_date'] : '' ) ); ?></li><?php endforeach; ?></ul>
+		</div>
+	<?php endif; ?>
 	<p><button class="bcp-button bcp-button--primary" type="submit"><?php esc_html_e( 'Salva anagrafica', 'bracelli-club' ); ?></button> <a class="bcp-button" href="<?php echo esc_url( Portal::url( [ 'vista' => 'soci' ] ) ); ?>"><?php esc_html_e( 'Annulla', 'bracelli-club' ); ?></a></p>
 </form>
 		<?php
@@ -240,7 +280,128 @@ final class SociSection implements SectionInterface {
 			$this->portal->action_fields( 'soci_archive', $id );
 			echo '<p>' . esc_html__( 'Se non è più attivo, archivia il socio. I dati restano nello storico e non vengono cancellati.', 'bracelli-club' ) . '</p>';
 			echo '<button class="bcp-button" type="submit">' . esc_html__( 'Archivia socio', 'bracelli-club' ) . '</button></form>';
+		} elseif ( $id > 0 ) {
+			echo '<form class="bcp-card" method="post" action="' . esc_url( Portal::url() ) . '">';
+			$this->portal->action_fields( 'soci_restore', $id );
+			echo '<p>' . esc_html__( 'Questa anagrafica è archiviata. Puoi riattivarla senza ricreare il record.', 'bracelli-club' ) . '</p>';
+			echo '<button class="bcp-button bcp-button--primary" type="submit">' . esc_html__( 'Riattiva socio', 'bracelli-club' ) . '</button></form>';
 		}
+		if ( $id > 0 ) {
+			$this->render_family( $family );
+			$this->render_history( $history );
+		}
+	}
+
+	/**
+	 * Mostra legami familiari senza esporli a ruoli diversi dalla segreteria.
+	 *
+	 * @param array{guardians: array<int, array<string, mixed>>, dependents: array<int, array<string, mixed>>}|null $family Famiglia.
+	 */
+	private function render_family( ?array $family ): void {
+		if ( null === $family ) {
+			return;
+		}
+		echo '<section class="bcp-card bcp-soci-family"><h2>' . esc_html__( 'Nucleo familiare', 'bracelli-club' ) . '</h2>';
+		foreach ( [ 'guardians' => __( 'Genitori e tutori', 'bracelli-club' ), 'dependents' => __( 'Soci collegati come familiari', 'bracelli-club' ) ] as $key => $label ) {
+			echo '<h3>' . esc_html( $label ) . '</h3>';
+			if ( [] === $family[ $key ] ) {
+				echo '<p class="bcp-muted">' . esc_html__( 'Nessun collegamento registrato.', 'bracelli-club' ) . '</p>';
+				continue;
+			}
+			echo '<ul>';
+			foreach ( $family[ $key ] as $relative ) {
+				$url = Portal::url( [ 'vista' => 'modifica-socio', 'socio' => (int) $relative['id'] ] );
+				echo '<li><a href="' . esc_url( $url ) . '">' . esc_html( $relative['last_name'] . ' ' . $relative['first_name'] ) . '</a>';
+				if ( ! empty( $relative['is_primary'] ) ) {
+					echo ' <span class="bcp-badge">' . esc_html__( 'Principale', 'bracelli-club' ) . '</span>';
+				}
+				echo '</li>';
+			}
+			echo '</ul>';
+		}
+		echo '</section>';
+	}
+
+	/**
+	 * Storico delle operazioni e dei campi modificati.
+	 *
+	 * @param array<int, array<string, mixed>> $history Eventi.
+	 */
+	private function render_history( array $history ): void {
+		echo '<section class="bcp-card bcp-soci-history"><h2>' . esc_html__( 'Storico anagrafica', 'bracelli-club' ) . '</h2>';
+		if ( [] === $history ) {
+			echo '<p class="bcp-muted">' . esc_html__( 'Non ci sono ancora modifiche registrate.', 'bracelli-club' ) . '</p></section>';
+			return;
+		}
+		echo '<div class="bcp-table-wrap"><table class="bcp-table"><thead><tr>';
+		echo '<th scope="col">' . esc_html__( 'Data', 'bracelli-club' ) . '</th><th scope="col">' . esc_html__( 'Operazione', 'bracelli-club' ) . '</th><th scope="col">' . esc_html__( 'Operatore', 'bracelli-club' ) . '</th><th scope="col">' . esc_html__( 'Campi coinvolti', 'bracelli-club' ) . '</th>';
+		echo '</tr></thead><tbody>';
+		foreach ( $history as $event ) {
+			$actor = get_userdata( (int) $event['actor_id'] );
+			$fields = isset( $event['fields'] ) && is_array( $event['fields'] ) ? array_map( [ $this, 'field_label' ], $event['fields'] ) : [];
+			echo '<tr><td>' . esc_html( (string) $event['created_at'] ) . '</td>';
+			echo '<td>' . esc_html( $this->history_action_label( (string) $event['action'] ) ) . '</td>';
+			echo '<td>' . esc_html( $actor ? $actor->display_name : __( 'Account non disponibile', 'bracelli-club' ) ) . '</td>';
+			echo '<td>' . esc_html( [] === $fields ? '—' : implode( ', ', $fields ) ) . '</td></tr>';
+		}
+		echo '</tbody></table></div></section>';
+	}
+
+	/**
+	 * Etichetta leggibile dei campi registrati nello storico.
+	 */
+	public function field_label( string $field ): string {
+		return match ( $field ) {
+			'first_name'   => __( 'Nome', 'bracelli-club' ),
+			'last_name'    => __( 'Cognome', 'bracelli-club' ),
+			'email'        => __( 'Email', 'bracelli-club' ),
+			'phone'        => __( 'Telefono', 'bracelli-club' ),
+			'birth_date'   => __( 'Data di nascita', 'bracelli-club' ),
+			'address'      => __( 'Indirizzo', 'bracelli-club' ),
+			'city'         => __( 'Comune', 'bracelli-club' ),
+			'postal_code'  => __( 'CAP', 'bracelli-club' ),
+			'status'       => __( 'Stato', 'bracelli-club' ),
+			'notes'        => __( 'Note', 'bracelli-club' ),
+			'guardian_ids' => __( 'Genitori/tutori', 'bracelli-club' ),
+			default        => $field,
+		};
+	}
+
+	private function history_action_label( string $action ): string {
+		return match ( $action ) {
+			'created'        => __( 'Creazione', 'bracelli-club' ),
+			'updated'        => __( 'Modifica', 'bracelli-club' ),
+			'status_changed' => __( 'Cambio stato', 'bracelli-club' ),
+			default          => $action,
+		};
+	}
+
+	/**
+	 * IDs non modificabili: le selezioni multiple arrivano come array e vanno convalidate singolarmente.
+	 *
+	 * @return int[]
+	 */
+	private function posted_guardian_ids(): array {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- il nonce è verificato da Portal::handle_post().
+		if ( ! isset( $_POST['guardian_ids'] ) || ! is_array( $_POST['guardian_ids'] ) ) {
+			return [];
+		}
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- ogni elemento è convertito in intero qui sotto.
+		$raw = wp_unslash( $_POST['guardian_ids'] );
+		return array_values( array_unique( array_filter( array_map( 'absint', $raw ) ) ) );
+	}
+
+	/**
+	 * Mantiene la selezione inviata in caso di errore, altrimenti carica quella salvata.
+	 *
+	 * @return int[]
+	 */
+	private function selected_guardian_ids( int $member_id ): array {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- il nonce è già verificato quando si ripresenta il modulo.
+		if ( isset( $_POST['guardian_ids_present'] ) ) {
+			return $this->posted_guardian_ids();
+		}
+		return $member_id > 0 ? $this->repo->guardian_ids( $member_id ) : [];
 	}
 
 	private function status_label( string $status ): string {
