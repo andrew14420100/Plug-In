@@ -126,6 +126,244 @@ final class MemberRepository {
 	}
 
 	/**
+	 * Tabella delle relazioni tra soci e genitori/tutori.
+	 */
+	public function guardians_table(): string {
+		return $this->db->prefix . 'bc_member_guardians';
+	}
+
+	/**
+	 * Tabella dello storico anagrafico.
+	 */
+	public function history_table(): string {
+		return $this->db->prefix . 'bc_member_history';
+	}
+
+	/**
+	 * Identificativi dei genitori/tutori collegati a un socio.
+	 *
+	 * @return int[]
+	 */
+	public function guardian_ids( int $member_id ): array {
+		$table = $this->guardians_table();
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- tabella interna e valore parametrizzato.
+		$ids = $this->db->get_col( $this->db->prepare( "SELECT guardian_id FROM {$table} WHERE member_id = %d ORDER BY is_primary DESC, id ASC", $member_id ) );
+		return array_map( 'intval', (array) $ids );
+	}
+
+	/**
+	 * Anagrafiche dei genitori/tutori collegati.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function guardians( int $member_id ): array {
+		$members   = $this->table();
+		$relations = $this->guardians_table();
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- nomi tabelle interni e valore parametrizzato.
+		$rows = $this->db->get_results(
+			$this->db->prepare(
+				"SELECT m.*, r.relationship, r.is_primary FROM {$members} m INNER JOIN {$relations} r ON r.guardian_id = m.id WHERE r.member_id = %d ORDER BY r.is_primary DESC, m.last_name ASC, m.first_name ASC",
+				$member_id
+			),
+			ARRAY_A
+		);
+		return array_map( [ $this, 'cast' ], (array) $rows );
+	}
+
+	/**
+	 * Soci per i quali una persona risulta genitore/tutore.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function dependents( int $guardian_id ): array {
+		$members   = $this->table();
+		$relations = $this->guardians_table();
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- nomi tabelle interni e valore parametrizzato.
+		$rows = $this->db->get_results(
+			$this->db->prepare(
+				"SELECT m.*, r.relationship, r.is_primary FROM {$members} m INNER JOIN {$relations} r ON r.member_id = m.id WHERE r.guardian_id = %d ORDER BY m.last_name ASC, m.first_name ASC",
+				$guardian_id
+			),
+			ARRAY_A
+		);
+		return array_map( [ $this, 'cast' ], (array) $rows );
+	}
+
+	/**
+	 * Sostituisce i collegamenti familiari mantenendo le relazioni non cambiate.
+	 *
+	 * @param int   $member_id Socio collegato.
+	 * @param int[] $guardian_ids Genitori/tutori richiesti.
+	 * @param int   $actor Utente che modifica i collegamenti.
+	 */
+	public function set_guardians( int $member_id, array $guardian_ids, int $actor ): bool {
+		$guardian_ids = array_values( array_unique( array_filter( array_map( 'absint', $guardian_ids ) ) ) );
+		$current      = $this->guardian_ids( $member_id );
+		$table        = $this->guardians_table();
+		$now          = gmdate( 'Y-m-d H:i:s' );
+
+		// Inseriamo prima i nuovi collegamenti: un errore non elimina quelli già presenti.
+		foreach ( $guardian_ids as $index => $guardian_id ) {
+			$is_primary = 0 === $index ? 1 : 0;
+			if ( ! in_array( $guardian_id, $current, true ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- tabella del plugin.
+				$ok = $this->db->insert(
+					$table,
+					[
+						'member_id'    => $member_id,
+						'guardian_id'  => $guardian_id,
+						'relationship' => 'genitore/tutore',
+						'is_primary'   => $is_primary,
+						'created_by'   => $actor,
+						'created_at'   => $now,
+					]
+				);
+				if ( false === $ok ) {
+					return false;
+				}
+			} else {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- tabella del plugin.
+				$ok = $this->db->update(
+					$table,
+					[ 'is_primary' => $is_primary ],
+					[
+						'member_id'   => $member_id,
+						'guardian_id' => $guardian_id,
+					]
+				);
+				if ( false === $ok ) {
+					return false;
+				}
+			}
+		}
+
+		foreach ( array_diff( $current, $guardian_ids ) as $guardian_id ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- tabella del plugin.
+			if ( false === $this->db->delete( $table, [ 'member_id' => $member_id, 'guardian_id' => $guardian_id ] ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Registra soltanto i nomi dei campi modificati, mai i valori personali.
+	 *
+	 * @param int      $member_id Socio.
+	 * @param int      $actor Utente.
+	 * @param string   $action Operazione.
+	 * @param string[] $fields Campi modificati.
+	 */
+	public function record_history( int $member_id, int $actor, string $action, array $fields ): bool {
+		$table  = $this->history_table();
+		$fields = array_values( array_unique( array_filter( array_map( 'sanitize_key', $fields ) ) ) );
+		$encoded = wp_json_encode( $fields );
+		if ( false === $encoded ) {
+			return false;
+		}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- storico append-only del plugin.
+		return false !== $this->db->insert(
+			$table,
+			[
+				'member_id'     => $member_id,
+				'actor_id'      => max( 0, $actor ),
+				'action'        => sanitize_key( $action ),
+				'changed_fields' => $encoded,
+				'created_at'    => gmdate( 'Y-m-d H:i:s' ),
+			]
+		);
+	}
+
+	/**
+	 * Storico di una singola anagrafica, dal più recente.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function history( int $member_id, int $limit = 50 ): array {
+		$table = $this->history_table();
+		$limit = min( 100, max( 1, $limit ) );
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- tabella interna e valori parametrizzati.
+		$rows = $this->db->get_results(
+			$this->db->prepare(
+				"SELECT id, member_id, actor_id, action, changed_fields, created_at FROM {$table} WHERE member_id = %d ORDER BY created_at DESC, id DESC LIMIT %d",
+				$member_id,
+				$limit
+			),
+			ARRAY_A
+		);
+		// phpcs:enable
+		$out = [];
+		foreach ( (array) $rows as $row ) {
+			$row['id']            = (int) $row['id'];
+			$row['member_id']     = (int) $row['member_id'];
+			$row['actor_id']      = (int) $row['actor_id'];
+			$row['fields']         = json_decode( (string) $row['changed_fields'], true );
+			$row['fields']         = is_array( $row['fields'] ) ? array_map( 'strval', $row['fields'] ) : [];
+			unset( $row['changed_fields'] );
+			$out[] = $row;
+		}
+		return $out;
+	}
+
+	/**
+	 * Cerca possibili doppioni in base a nome/cognome e, se disponibile, data di nascita.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function potential_duplicates( string $first_name, string $last_name, string $birth_date = '', int $exclude_id = 0 ): array {
+		if ( '' === trim( $first_name ) || '' === trim( $last_name ) ) {
+			return [];
+		}
+		$table  = $this->table();
+		$params = [ trim( $first_name ), trim( $last_name ), $exclude_id ];
+		$where  = 'LOWER(first_name) = LOWER(%s) AND LOWER(last_name) = LOWER(%s) AND id <> %d';
+		if ( '' !== $birth_date ) {
+			$where   .= ' AND (birth_date = %s OR birth_date IS NULL)';
+			$params[] = $birth_date;
+		}
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- clausola costruita da campi fissi e valori parametrizzati.
+		$rows = $this->db->get_results(
+			$this->db->prepare(
+				"SELECT id, first_name, last_name, birth_date, email, status FROM {$table} WHERE {$where} ORDER BY id DESC LIMIT 10",
+				$params
+			),
+			ARRAY_A
+		);
+		// phpcs:enable
+		return array_map( [ $this, 'cast' ], (array) $rows );
+	}
+
+	/**
+	 * Indica se un socio è già discendente del tutore proposto, evitando relazioni circolari.
+	 */
+	public function is_descendant( int $member_id, int $ancestor_id ): bool {
+		if ( $member_id < 1 || $ancestor_id < 1 || $member_id === $ancestor_id ) {
+			return false;
+		}
+		$table   = $this->guardians_table();
+		$queue   = [ $ancestor_id ];
+		$visited = [];
+		while ( [] !== $queue && count( $visited ) < 1000 ) {
+			$current = (int) array_shift( $queue );
+			if ( isset( $visited[ $current ] ) ) {
+				continue;
+			}
+			$visited[ $current ] = true;
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- tabella interna e valore parametrizzato.
+			$children = $this->db->get_col( $this->db->prepare( "SELECT member_id FROM {$table} WHERE guardian_id = %d", $current ) );
+			foreach ( array_map( 'intval', (array) $children ) as $child_id ) {
+				if ( $member_id === $child_id ) {
+					return true;
+				}
+				if ( ! isset( $visited[ $child_id ] ) ) {
+					$queue[] = $child_id;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Converte i tipi restituiti da wpdb.
 	 *
 	 * @param array<string, mixed> $row Riga.
