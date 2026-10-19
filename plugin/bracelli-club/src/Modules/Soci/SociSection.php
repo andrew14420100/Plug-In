@@ -862,9 +862,13 @@ final class SociSection implements SectionInterface {
 			if ( $result['ok'] && 'created' === $result['code'] ) {
 				++$created;
 			} else {
+				$message = implode( ' ', array_values( $result['errors'] ) );
+				if ( '' === $message ) {
+					$message = __( 'Il record non è stato salvato. Potrebbe essere cambiato dopo l’anteprima.', 'bracelli-club' );
+				}
 				$failures[] = [
 					'line'    => (int) $row['line'],
-					'message' => implode( ' ', array_values( $result['errors'] ) ) ?: __( 'Il record non è stato salvato. Potrebbe essere cambiato dopo l’anteprima.', 'bracelli-club' ),
+					'message' => $message,
 				];
 			}
 		}
