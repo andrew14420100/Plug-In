@@ -26,7 +26,7 @@ final class MembersTest extends TestCase {
 	}
 
 	public function test_secretary_can_create_and_search_member(): void {
-		$email = 'mario.rossi' . chr( 64 ) . 'example.test';
+		$email = 'mario.rossi' . chr( 64 ) . 'example.org';
 		$result = $this->service->save(
 			$this->segreteria,
 			0,
@@ -47,7 +47,7 @@ final class MembersTest extends TestCase {
 	}
 
 	public function test_member_email_cannot_be_duplicated(): void {
-		$duplicate_email = 'duplicato' . chr( 64 ) . 'example.test';
+		$duplicate_email = 'duplicato' . chr( 64 ) . 'example.org';
 		$input = [
 			'first_name' => 'Mario',
 			'last_name'  => 'Rossi',
@@ -98,7 +98,7 @@ final class MembersTest extends TestCase {
 			[
 				'first_name' => 'Giulia',
 				'last_name'  => 'Verdi',
-				'email'      => 'giulia.verdi@example.test',
+				'email'      => 'giulia.verdi@example.org',
 			]
 		);
 		$this->assertTrue( $guardian['ok'] );
@@ -130,7 +130,7 @@ final class MembersTest extends TestCase {
 			[
 				'first_name'          => 'Giulia',
 				'last_name'           => 'Verdi',
-				'email'               => 'giulia.verdi@example.test',
+				'email'               => 'giulia.verdi@example.org',
 				'status'              => 'active',
 				'guardian_ids_present' => '1',
 				'guardian_ids'        => [ $member['id'] ],
@@ -147,7 +147,7 @@ final class MembersTest extends TestCase {
 			[
 				'first_name' => 'Sara',
 				'last_name'  => 'Bianchi',
-				'email'      => 'sara.bianchi@example.test',
+				'email'      => 'sara.bianchi@example.org',
 				'birth_date' => '2004-07-14',
 			]
 		);
