@@ -251,7 +251,7 @@ final class SociSection implements SectionInterface {
 		<div class="bcp-field"><label for="bcp-address"><?php esc_html_e( 'Indirizzo', 'bracelli-club' ); ?></label><input id="bcp-address" name="address" maxlength="190" value="<?php echo esc_attr( $values['address'] ); ?>"><?php $this->portal->field_error( 'address' ); ?></div>
 		<div class="bcp-field"><label for="bcp-city"><?php esc_html_e( 'Comune', 'bracelli-club' ); ?></label><input id="bcp-city" name="city" maxlength="100" value="<?php echo esc_attr( $values['city'] ); ?>"><?php $this->portal->field_error( 'city' ); ?></div>
 		<div class="bcp-field"><label for="bcp-postal"><?php esc_html_e( 'CAP', 'bracelli-club' ); ?></label><input id="bcp-postal" name="postal_code" maxlength="20" value="<?php echo esc_attr( $values['postal_code'] ); ?>"><?php $this->portal->field_error( 'postal_code' ); ?></div>
-		<div class="bcp-field"><label for="bcp-status"><?php esc_html_e( 'Stato anagrafica', 'bracelli-club' ); ?></label><select id="bcp-status" name="status"><option value="active"<?php selected( $values['status'], 'active' ); ?>><?php esc_html_e( 'Attivo', 'bracelli-club' ); ?></option><option value="suspended"<?php selected( $values['status'], 'suspended' ); ?>><?php esc_html_e( 'Sospeso', 'bracelli-club' ); ?></option></select></div>
+		<div class="bcp-field"><label for="bcp-status"><?php esc_html_e( 'Stato anagrafica', 'bracelli-club' ); ?></label><select id="bcp-status" name="status"><option value="active"<?php selected( $values['status'], 'active' ); ?>><?php esc_html_e( 'Attivo', 'bracelli-club' ); ?></option><option value="suspended"<?php selected( $values['status'], 'suspended' ); ?>><?php esc_html_e( 'Sospeso', 'bracelli-club' ); ?></option><?php if ( 'archived' === $values['status'] ) : ?><option value="archived" selected><?php esc_html_e( 'Archiviato', 'bracelli-club' ); ?></option><?php endif; ?></select></div>
 		<div class="bcp-field bcp-field--full"><label for="bcp-notes"><?php esc_html_e( 'Note interne', 'bracelli-club' ); ?></label><textarea id="bcp-notes" name="notes" rows="4" maxlength="4000"><?php echo esc_textarea( $values['notes'] ); ?></textarea><?php $this->portal->field_error( 'notes' ); ?></div>
 		<div class="bcp-field bcp-field--full">
 			<label for="bcp-guardians"><?php esc_html_e( 'Genitori o tutori collegati', 'bracelli-club' ); ?></label>
@@ -339,10 +339,10 @@ final class SociSection implements SectionInterface {
 		foreach ( $history as $event ) {
 			$actor = get_userdata( (int) $event['actor_id'] );
 			$fields = isset( $event['fields'] ) && is_array( $event['fields'] ) ? array_map( [ $this, 'field_label' ], $event['fields'] ) : [];
-			echo '<tr><td>' . esc_html( (string) $event['created_at'] ) . '</td>';
-			echo '<td>' . esc_html( $this->history_action_label( (string) $event['action'] ) ) . '</td>';
-			echo '<td>' . esc_html( $actor ? $actor->display_name : __( 'Account non disponibile', 'bracelli-club' ) ) . '</td>';
-			echo '<td>' . esc_html( [] === $fields ? '—' : implode( ', ', $fields ) ) . '</td></tr>';
+			echo '<tr><td data-label="' . esc_attr__( 'Data', 'bracelli-club' ) . '">' . esc_html( (string) $event['created_at'] ) . '</td>';
+			echo '<td data-label="' . esc_attr__( 'Operazione', 'bracelli-club' ) . '">' . esc_html( $this->history_action_label( (string) $event['action'] ) ) . '</td>';
+			echo '<td data-label="' . esc_attr__( 'Operatore', 'bracelli-club' ) . '">' . esc_html( $actor ? $actor->display_name : __( 'Account non disponibile', 'bracelli-club' ) ) . '</td>';
+			echo '<td data-label="' . esc_attr__( 'Campi coinvolti', 'bracelli-club' ) . '">' . esc_html( [] === $fields ? '—' : implode( ', ', $fields ) ) . '</td></tr>';
 		}
 		echo '</tbody></table></div></section>';
 	}
