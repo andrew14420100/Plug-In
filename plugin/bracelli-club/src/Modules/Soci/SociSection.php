@@ -517,8 +517,8 @@ final class SociSection implements SectionInterface {
 			if ( [] !== $report['failures'] ) {
 				echo '<ul>';
 				foreach ( $report['failures'] as $failure ) {
-					/* translators: 1: CSV row number, 2: reason the row was not imported. */
 					$message = sprintf(
+						/* translators: 1: CSV row number, 2: reason the row was not imported. */
 						__( 'Riga %1$d: %2$s', 'bracelli-club' ),
 						(int) $failure['line'],
 						(string) $failure['message']
@@ -532,8 +532,8 @@ final class SociSection implements SectionInterface {
 
 		if ( is_array( $preview ) ) {
 			echo '<section class="bcp-card"><h2>' . esc_html__( 'Anteprima CSV', 'bracelli-club' ) . '</h2>';
-			/* translators: %d: number of CSV rows in the preview. */
 			$row_count = sprintf(
+				/* translators: %d: number of CSV rows in the preview. */
 				__( '%d righe da analizzare', 'bracelli-club' ),
 				count( $preview['rows'] )
 			);
