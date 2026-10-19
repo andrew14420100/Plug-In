@@ -655,7 +655,7 @@ final class SociSection implements SectionInterface {
 		fwrite( $stream, $content );
 		rewind( $stream );
 		$headers = fgetcsv( $stream, null, $delimiter, '"', '' );
-		if ( false === $headers || [] === $headers ) {
+		if ( false === $headers ) {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- chiude uno stream temporaneo o di risposta.
 			fclose( $stream );
 			$base['fatal_errors'][] = __( 'Il file non contiene intestazioni valide.', 'bracelli-club' );
