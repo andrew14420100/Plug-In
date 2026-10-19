@@ -43,10 +43,21 @@ Architettura completa pianificata adesso, **sviluppo una fase alla volta**, senz
 - Sicurezza, code, reprocessing, conflict resolution, audit, monitor e controllo impatto PC.
 - Gate: confronto con fonte, prova offline/riavvio, test sicurezza e approvazione; nessuna promessa di tempo reale senza misura.
 
-## Fase 4 — Corsi, istruttori, presenze e prenotazioni
+## Fase 4 — Corsi, iscrizioni e presenze dei partecipanti
 
-- Corsi/lezioni/istruttori/categorie, calendari ricorrenti, manuale presenze 3 stati con autosave e storico.
-- Prenotazioni pubbliche/privati per risorse, disponibilità e conflitti, conferma email, cancellazioni e privacy; tariffe configurabili.
+**Specifiche dettagliate:** [`docs/MODULO-ISCRIZIONI-PRESENZE.md`](MODULO-ISCRIZIONI-PRESENZE.md).
+
+- Gestione corsi/lezioni/categorie e calendario ricorrente con eccezioni, recuperi e annullamenti.
+- Iscrizioni ai corsi: aggiunta, modifica, sospensione/chiusura, deduplicazione, elenco iscritti e capienza se configurata.
+- Registro separato delle presenze dei partecipanti alle singole sessioni: Presente, Assente, Assenza giustificata; correzioni autorizzate e storico auditato.
+- Storico e statistiche per corso/partecipante/periodo, esportazioni controllate e permessi server-side per segreteria e istruttori assegnati.
+- Le presenze dei partecipanti sono **distinte dalle presenze lavorative degli istruttori**. Questo modulo non gestisce tessere, codici a barre o Club Manager.
+- Le liste d'attesa restano disattivate finché la relativa decisione non viene approvata.
+- Gate: test di permessi e accessi diretti, doppie iscrizioni/presenze, sessioni annullate, correzioni storiche, concorrenza, responsive UX e flusso end-to-end in LocalWP.
+
+## Fase 5 — Prenotazioni di corsi e strutture
+
+- Prenotazioni pubbliche/private per risorse, disponibilità e conflitti, conferma email, cancellazioni e privacy; tariffe configurabili.
 - Liste d'attesa Q208 ancora da decidere.
 - Gate: conflitti concorrenziali, disponibilità, permessi e UX verificati.
 
