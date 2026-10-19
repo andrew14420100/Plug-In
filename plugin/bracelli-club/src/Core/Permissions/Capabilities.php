@@ -30,6 +30,7 @@ final class Capabilities {
 	public const CORSI_TEACH          = 'bracelli_corsi_teach';
 	public const CORSI_MANAGE         = 'bracelli_corsi_manage';
 	public const CORSI_IMPORT         = 'bracelli_corsi_import';
+	public const SOCI_MANAGE           = 'bracelli_soci_manage';
 
 	/**
 	 * Capability che NON vengono date automaticamente all'amministratore: non sono privilegi,
@@ -124,6 +125,12 @@ final class Capabilities {
 				'grantable'   => false,
 				'sensitive'   => true,
 			],
+			self::SOCI_MANAGE           => [
+				'label'       => __( 'Archivio soci', 'bracelli-club' ),
+				'description' => __( 'Consulta e gestisce le anagrafiche dei soci nell\'area riservata.', 'bracelli-club' ),
+				'grantable'   => true,
+				'sensitive'   => true,
+			],
 		];
 	}
 
@@ -154,6 +161,7 @@ final class Capabilities {
 			self::CORSI_TEACH          => true,
 			self::CORSI_MANAGE         => true,
 			self::CORSI_IMPORT         => false,
+			self::SOCI_MANAGE           => true,
 		];
 	}
 
