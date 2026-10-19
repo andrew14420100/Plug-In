@@ -251,7 +251,16 @@ final class SociSection implements SectionInterface {
 		<div class="bcp-field"><label for="bcp-address"><?php esc_html_e( 'Indirizzo', 'bracelli-club' ); ?></label><input id="bcp-address" name="address" maxlength="190" value="<?php echo esc_attr( $values['address'] ); ?>"><?php $this->portal->field_error( 'address' ); ?></div>
 		<div class="bcp-field"><label for="bcp-city"><?php esc_html_e( 'Comune', 'bracelli-club' ); ?></label><input id="bcp-city" name="city" maxlength="100" value="<?php echo esc_attr( $values['city'] ); ?>"><?php $this->portal->field_error( 'city' ); ?></div>
 		<div class="bcp-field"><label for="bcp-postal"><?php esc_html_e( 'CAP', 'bracelli-club' ); ?></label><input id="bcp-postal" name="postal_code" maxlength="20" value="<?php echo esc_attr( $values['postal_code'] ); ?>"><?php $this->portal->field_error( 'postal_code' ); ?></div>
-		<div class="bcp-field"><label for="bcp-status"><?php esc_html_e( 'Stato anagrafica', 'bracelli-club' ); ?></label><select id="bcp-status" name="status"><option value="active"<?php selected( $values['status'], 'active' ); ?>><?php esc_html_e( 'Attivo', 'bracelli-club' ); ?></option><option value="suspended"<?php selected( $values['status'], 'suspended' ); ?>><?php esc_html_e( 'Sospeso', 'bracelli-club' ); ?></option><?php if ( 'archived' === $values['status'] ) : ?><option value="archived" selected><?php esc_html_e( 'Archiviato', 'bracelli-club' ); ?></option><?php endif; ?></select></div>
+		<div class="bcp-field">
+			<label for="bcp-status"><?php esc_html_e( 'Stato anagrafica', 'bracelli-club' ); ?></label>
+			<select id="bcp-status" name="status">
+				<option value="active"<?php selected( $values['status'], 'active' ); ?>><?php esc_html_e( 'Attivo', 'bracelli-club' ); ?></option>
+				<option value="suspended"<?php selected( $values['status'], 'suspended' ); ?>><?php esc_html_e( 'Sospeso', 'bracelli-club' ); ?></option>
+				<?php if ( 'archived' === $values['status'] ) : ?>
+					<option value="archived" selected><?php esc_html_e( 'Archiviato', 'bracelli-club' ); ?></option>
+				<?php endif; ?>
+			</select>
+		</div>
 		<div class="bcp-field bcp-field--full"><label for="bcp-notes"><?php esc_html_e( 'Note interne', 'bracelli-club' ); ?></label><textarea id="bcp-notes" name="notes" rows="4" maxlength="4000"><?php echo esc_textarea( $values['notes'] ); ?></textarea><?php $this->portal->field_error( 'notes' ); ?></div>
 		<div class="bcp-field bcp-field--full">
 			<label for="bcp-guardians"><?php esc_html_e( 'Genitori o tutori collegati', 'bracelli-club' ); ?></label>
@@ -269,7 +278,18 @@ final class SociSection implements SectionInterface {
 		<div class="bcp-alert bcp-alert--warning" role="status">
 			<strong><?php esc_html_e( 'Controlla possibili doppioni', 'bracelli-club' ); ?></strong>
 			<p><?php esc_html_e( 'Esistono già anagrafiche con nome e cognome uguali. Verifica che non si tratti della stessa persona.', 'bracelli-club' ); ?></p>
-			<ul><?php foreach ( $duplicates as $duplicate ) : ?><li><?php echo esc_html( $duplicate['last_name'] . ' ' . $duplicate['first_name'] . ( '' !== (string) ( $duplicate['birth_date'] ?? '' ) ? ' — ' . $duplicate['birth_date'] : '' ) ); ?></li><?php endforeach; ?></ul>
+			<ul>
+				<?php foreach ( $duplicates as $duplicate ) : ?>
+					<li>
+						<?php
+						echo esc_html(
+							$duplicate['last_name'] . ' ' . $duplicate['first_name']
+							. ( '' !== (string) ( $duplicate['birth_date'] ?? '' ) ? ' — ' . $duplicate['birth_date'] : '' )
+						);
+						?>
+					</li>
+				<?php endforeach; ?>
+			</ul>
 		</div>
 	<?php endif; ?>
 	<p><button class="bcp-button bcp-button--primary" type="submit"><?php esc_html_e( 'Salva anagrafica', 'bracelli-club' ); ?></button> <a class="bcp-button" href="<?php echo esc_url( Portal::url( [ 'vista' => 'soci' ] ) ); ?>"><?php esc_html_e( 'Annulla', 'bracelli-club' ); ?></a></p>
@@ -302,7 +322,12 @@ final class SociSection implements SectionInterface {
 			return;
 		}
 		echo '<section class="bcp-card bcp-soci-family"><h2>' . esc_html__( 'Nucleo familiare', 'bracelli-club' ) . '</h2>';
-		foreach ( [ 'guardians' => __( 'Genitori e tutori', 'bracelli-club' ), 'dependents' => __( 'Soci collegati come familiari', 'bracelli-club' ) ] as $key => $label ) {
+		foreach (
+			[
+				'guardians'  => __( 'Genitori e tutori', 'bracelli-club' ),
+				'dependents' => __( 'Soci collegati come familiari', 'bracelli-club' ),
+			] as $key => $label
+		) {
 			echo '<h3>' . esc_html( $label ) . '</h3>';
 			if ( [] === $family[ $key ] ) {
 				echo '<p class="bcp-muted">' . esc_html__( 'Nessun collegamento registrato.', 'bracelli-club' ) . '</p>';
@@ -310,7 +335,12 @@ final class SociSection implements SectionInterface {
 			}
 			echo '<ul>';
 			foreach ( $family[ $key ] as $relative ) {
-				$url = Portal::url( [ 'vista' => 'modifica-socio', 'socio' => (int) $relative['id'] ] );
+				$url = Portal::url(
+					[
+						'vista' => 'modifica-socio',
+						'socio' => (int) $relative['id'],
+					]
+				);
 				echo '<li><a href="' . esc_url( $url ) . '">' . esc_html( $relative['last_name'] . ' ' . $relative['first_name'] ) . '</a>';
 				if ( ! empty( $relative['is_primary'] ) ) {
 					echo ' <span class="bcp-badge">' . esc_html__( 'Principale', 'bracelli-club' ) . '</span>';
@@ -386,6 +416,7 @@ final class SociSection implements SectionInterface {
 		if ( ! isset( $_POST['guardian_ids'] ) || ! is_array( $_POST['guardian_ids'] ) ) {
 			return [];
 		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificato da Portal::handle_post().
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificato da Portal::handle_post().
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- ogni elemento è convertito in intero qui sotto.
 		$raw = wp_unslash( $_POST['guardian_ids'] );
