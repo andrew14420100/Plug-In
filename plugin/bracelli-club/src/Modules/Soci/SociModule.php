@@ -23,7 +23,8 @@ final class SociModule implements ModuleInterface {
 	/** {@inheritDoc} */
 	public function boot( Plugin $plugin ): void {
 		global $wpdb;
-		$service = new MemberService( new MemberRepository( $wpdb ), $plugin->audit );
-		Sections::add( new SociSection( $service, new MemberRepository( $wpdb ) ) );
+		$repository = new MemberRepository( $wpdb );
+		$service    = new MemberService( $repository, $plugin->audit );
+		Sections::add( new SociSection( $service, $repository ) );
 	}
 }
