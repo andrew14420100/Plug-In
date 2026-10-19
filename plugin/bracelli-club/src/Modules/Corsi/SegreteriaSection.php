@@ -86,7 +86,7 @@ final class SegreteriaSection implements SectionInterface {
 		$slots   = $repo->slots( [ 'status' => 'active' ] );
 		$rooms   = $repo->rooms();
 
-		$active_courses = count(
+		$active_courses  = count(
 			array_filter(
 				$courses,
 				static fn( array $course ): bool => 'active' === ( $course['status'] ?? '' )
@@ -98,7 +98,7 @@ final class SegreteriaSection implements SectionInterface {
 				static fn( array $slot ): bool => 'active' === ( $slot['course_status'] ?? '' )
 			)
 		);
-		$active_rooms     = count(
+		$active_rooms    = count(
 			array_filter(
 				$rooms,
 				static fn( array $room ): bool => 'active' === ( $room['status'] ?? '' )
