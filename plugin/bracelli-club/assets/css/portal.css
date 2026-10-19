@@ -961,3 +961,46 @@ a.bcp-secretary-link:hover {
 		margin-bottom: 2px;
 	}
 }
+
+
+/* Toolbar e schermata di importazione dell'archivio soci. */
+
+.bcp-soci-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 18px;
+}
+
+.bcp-soci-toolbar .bcp-inline-form {
+	display: inline-flex;
+	margin: 0;
+}
+
+.bcp-import-errors {
+	padding-left: 22px;
+}
+
+.bcp-import-errors li {
+	margin: 6px 0;
+}
+
+.bcp-card .bcp-soci-import-help {
+	margin-top: 0;
+}
+
+@media (max-width: 640px) {
+	.bcp-soci-toolbar {
+		align-items: stretch;
+	}
+
+	.bcp-soci-toolbar .bcp-button,
+	.bcp-soci-toolbar .bcp-inline-form {
+		width: 100%;
+	}
+
+	.bcp-soci-toolbar .bcp-inline-form .bcp-button {
+		width: 100%;
+	}
+}
