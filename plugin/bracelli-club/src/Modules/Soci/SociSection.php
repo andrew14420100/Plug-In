@@ -73,11 +73,11 @@ final class SociSection implements SectionInterface {
 	public function handle( Portal $portal, int $user, string $action, int $id ): void {
 		$this->portal = $portal;
 		if ( 'save' === $action ) {
-			$input = $portal->posted( [ 'first_name', 'last_name', 'email', 'phone', 'birth_date', 'address', 'city', 'postal_code', 'status', 'notes' ] );
+			$input      = $portal->posted( [ 'first_name', 'last_name', 'email', 'phone', 'birth_date', 'address', 'city', 'postal_code', 'status', 'notes' ] );
 			$save_input = $input;
-			$save_input['guardian_ids'] = $this->posted_guardian_ids();
+			$save_input['guardian_ids']         = $this->posted_guardian_ids();
 			$save_input['guardian_ids_present'] = '1';
-			$result = $this->service->save( $user, $id, $save_input );
+			$result                             = $this->service->save( $user, $id, $save_input );
 			if ( $result['ok'] ) {
 				$portal->redirect(
 					[
@@ -192,13 +192,13 @@ final class SociSection implements SectionInterface {
 			echo '<nav class="bcp-pagination" aria-label="' . esc_attr__( 'Pagine archivio soci', 'bracelli-club' ) . '">';
 			for ( $n = 1; $n <= $pages; $n++ ) {
 				$url = Portal::url(
-				[
-					'vista'  => 'soci',
-					'q'      => $search,
-					'stato'  => $status,
-					'pagina' => $n,
-				]
-			);
+					[
+						'vista'  => 'soci',
+						'q'      => $search,
+						'stato'  => $status,
+						'pagina' => $n,
+					]
+				);
 				echo '<a class="bcp-button' . ( $n === $page ? ' bcp-button--primary' : '' ) . '" href="' . esc_url( $url ) . '"' . ( $n === $page ? ' aria-current="page"' : '' ) . '>' . esc_html( (string) $n ) . '</a> ';
 			}
 			echo '</nav>';
@@ -211,16 +211,16 @@ final class SociSection implements SectionInterface {
 	private function form( ?array $member, int $user ): void {
 		$id     = (int) ( $member['id'] ?? 0 );
 		$values = $this->portal->old() + [
-			'first_name' => (string) ( $member['first_name'] ?? '' ),
-			'last_name'  => (string) ( $member['last_name'] ?? '' ),
-			'email'      => (string) ( $member['email'] ?? '' ),
-			'phone'      => (string) ( $member['phone'] ?? '' ),
-			'birth_date' => (string) ( $member['birth_date'] ?? '' ),
-			'address'    => (string) ( $member['address'] ?? '' ),
-			'city'       => (string) ( $member['city'] ?? '' ),
+			'first_name'  => (string) ( $member['first_name'] ?? '' ),
+			'last_name'   => (string) ( $member['last_name'] ?? '' ),
+			'email'       => (string) ( $member['email'] ?? '' ),
+			'phone'       => (string) ( $member['phone'] ?? '' ),
+			'birth_date'  => (string) ( $member['birth_date'] ?? '' ),
+			'address'     => (string) ( $member['address'] ?? '' ),
+			'city'        => (string) ( $member['city'] ?? '' ),
 			'postal_code' => (string) ( $member['postal_code'] ?? '' ),
-			'status'     => (string) ( $member['status'] ?? 'active' ),
-			'notes'      => (string) ( $member['notes'] ?? '' ),
+			'status'      => (string) ( $member['status'] ?? 'active' ),
+			'notes'       => (string) ( $member['notes'] ?? '' ),
 		];
 		$family              = $id > 0 ? $this->service->family( $user, $id ) : null;
 		$history             = $id > 0 ? $this->service->history( $user, $id ) : [];
@@ -386,6 +386,7 @@ final class SociSection implements SectionInterface {
 		if ( ! isset( $_POST['guardian_ids'] ) || ! is_array( $_POST['guardian_ids'] ) ) {
 			return [];
 		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificato da Portal::handle_post().
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- ogni elemento è convertito in intero qui sotto.
 		$raw = wp_unslash( $_POST['guardian_ids'] );
 		return array_values( array_unique( array_filter( array_map( 'absint', $raw ) ) ) );
