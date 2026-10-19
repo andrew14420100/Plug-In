@@ -43,6 +43,7 @@ final class SociSection implements SectionInterface {
 			'soci'           => __( 'Archivio soci', 'bracelli-club' ),
 			'nuovo-socio'    => __( 'Nuovo socio', 'bracelli-club' ),
 			'modifica-socio' => __( 'Scheda socio', 'bracelli-club' ),
+			'importa-soci'   => __( 'Importa soci da CSV', 'bracelli-club' ),
 		];
 	}
 
@@ -65,13 +66,44 @@ final class SociSection implements SectionInterface {
 			'restored'  => [ 'success', __( 'Socio riattivato.', 'bracelli-club' ) ],
 			'unchanged' => [ 'info', __( 'Nessuna modifica da salvare.', 'bracelli-club' ) ],
 			'not_found' => [ 'error', __( 'Socio non trovato.', 'bracelli-club' ) ],
-			'duplicate' => [ 'error', __( 'Esiste già un socio con questa email.', 'bracelli-club' ) ],
+			'duplicate'         => [ 'error', __( 'Esiste già un socio con questa email.', 'bracelli-club' ) ],
+			'import_preview'    => [ 'info', __( 'Anteprima CSV pronta: i dati non sono ancora stati salvati.', 'bracelli-club' ) ],
+			'import_invalid'    => [ 'error', __( 'Il file presenta errori: correggili e caricalo di nuovo. Nessuna riga è stata importata.', 'bracelli-club' ) ],
+			'import_file_error' => [ 'error', __( 'Il file non è stato caricato correttamente. Seleziona un CSV valido fino a 1 MB.', 'bracelli-club' ) ],
+			'import_expired'    => [ 'error', __( 'L’anteprima è scaduta o non è valida. Carica nuovamente il file.', 'bracelli-club' ) ],
+			'import_applied'    => [ 'success', __( 'Importazione CSV completata.', 'bracelli-club' ) ],
+			'import_partial'    => [ 'warning', __( 'Importazione terminata con alcune righe non salvate: controlla il rapporto.', 'bracelli-club' ) ],
+			'import_discarded'  => [ 'info', __( 'Anteprima importazione scartata.', 'bracelli-club' ) ],
 		];
 	}
 
 	/** {@inheritDoc} */
 	public function handle( Portal $portal, int $user, string $action, int $id ): void {
 		$this->portal = $portal;
+		if ( ! $this->service->can_manage( $user ) ) {
+			$portal->redirect( [ 'vista' => 'soci', 'esito' => 'forbidden' ] );
+		}
+		if ( 'export' === $action ) {
+			$this->download_csv( $user, false );
+		}
+		if ( 'template' === $action ) {
+			$this->download_csv( $user, true );
+		}
+		if ( 'import_preview' === $action ) {
+			$preview = $this->create_import_preview( $user );
+			set_transient( $this->import_key( $user ), $preview, 30 * MINUTE_IN_SECONDS );
+			delete_transient( $this->report_key( $user ) );
+			$esito = ! empty( $preview['fatal_errors'] ) ? 'import_file_error' : ( 0 === (int) $preview['error_count'] ? 'import_preview' : 'import_invalid' );
+			$portal->redirect( [ 'vista' => 'importa-soci', 'esito' => $esito ] );
+		}
+		if ( 'import_apply' === $action ) {
+			$this->apply_import( $portal, $user );
+		}
+		if ( 'import_discard' === $action ) {
+			delete_transient( $this->import_key( $user ) );
+			delete_transient( $this->report_key( $user ) );
+			$portal->redirect( [ 'vista' => 'soci', 'esito' => 'import_discarded' ] );
+		}
 		if ( 'save' === $action ) {
 			$input      = $portal->posted( [ 'first_name', 'last_name', 'email', 'phone', 'birth_date', 'address', 'city', 'postal_code', 'status', 'notes' ] );
 			$save_input = $input;
@@ -131,6 +163,10 @@ final class SociSection implements SectionInterface {
 			$this->form( null, $user );
 			return;
 		}
+		if ( 'importa-soci' === $view ) {
+			$this->render_import_view( $user );
+			return;
+		}
 		if ( 'modifica-socio' === $view ) {
 			$member = $this->repo->find( absint( $portal->query( 'socio' ) ) );
 			if ( null === $member ) {
@@ -148,7 +184,13 @@ final class SociSection implements SectionInterface {
 		$status = in_array( $this->portal->query( 'stato' ), [ 'active', 'suspended', 'archived' ], true ) ? $this->portal->query( 'stato' ) : '';
 		$page   = max( 1, absint( $this->portal->query( 'pagina' ) ) );
 		$result = $this->repo->search( $search, $status, $page, 25 );
-		echo '<p><a class="bcp-button bcp-button--primary" href="' . esc_url( Portal::url( [ 'vista' => 'nuovo-socio' ] ) ) . '">' . esc_html__( 'Aggiungi socio', 'bracelli-club' ) . '</a></p>';
+		echo '<div class="bcp-soci-toolbar">';
+		echo '<a class="bcp-button bcp-button--primary" href="' . esc_url( Portal::url( [ 'vista' => 'nuovo-socio' ] ) ) . '">' . esc_html__( 'Aggiungi socio', 'bracelli-club' ) . '</a> ';
+		echo '<a class="bcp-button" href="' . esc_url( Portal::url( [ 'vista' => 'importa-soci' ] ) ) . '">' . esc_html__( 'Importa CSV', 'bracelli-club' ) . '</a> ';
+		echo '<form class="bcp-inline-form" method="post" action="' . esc_url( Portal::url() ) . '">';
+		$this->portal->action_fields( 'soci_export' );
+		echo '<button class="bcp-button" type="submit">' . esc_html__( 'Esporta CSV', 'bracelli-club' ) . '</button></form>';
+		echo '</div>';
 		?>
 <form class="bcp-card bcp-filters" method="get" action="<?php echo esc_url( Portal::url() ); ?>">
 		<?php $this->portal->get_form_fields(); ?>
