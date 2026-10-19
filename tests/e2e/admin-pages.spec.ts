@@ -113,7 +113,6 @@ test.describe( 'Pagine amministrative', () => {
 
 	test( 'permessi: concessione del registro alla segreteria', async ( {
 		page,
-		browser,
 	} ) => {
 		await login( page, 'admin' );
 		const reset = async () => {
@@ -142,14 +141,12 @@ test.describe( 'Pagine amministrative', () => {
 			).toBeVisible();
 			await shot( page, '13-permessi' );
 
-			const context = await browser.newContext();
-			const staff = await context.newPage();
-			await login( staff, 'staff' );
-			const response = await staff.goto(
-				'/wp-admin/admin.php?page=bracelli-audit'
-			);
-			expect( response?.status() ).toBe( 200 );
-			await context.close();
+			// La scelta resta salvata (l'effetto sui permessi è verificato dai test di integrazione:
+			// la segreteria ora usa l'area riservata e non entra nella bacheca WordPress).
+			await page.reload();
+			await expect(
+				page.getByLabel( 'Registro attività — Segreteria Bracelli' )
+			).toBeChecked();
 		} finally {
 			await reset();
 		}

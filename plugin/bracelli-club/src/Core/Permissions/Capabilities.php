@@ -12,8 +12,8 @@ namespace Bracelli\Club\Core\Permissions;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Capability atomiche (ADR-001 §6.2). In Fase 1 esistono solo quelle del nucleo:
- * i moduli successivi aggiungeranno le proprie con una nuova migrazione.
+ * Capability atomiche (ADR-001 §6.2): quelle del nucleo e quelle del modulo Turni e presenze (prototipo).
+ * I moduli assegnano le proprie capability ai ruoli con una migrazione dedicata.
  */
 final class Capabilities {
 
@@ -24,6 +24,18 @@ final class Capabilities {
 	public const PERMISSIONS_MANAGE   = 'bracelli_permissions_manage';
 	public const AUDIT_VIEW           = 'bracelli_audit_view';
 	public const DIAGNOSTICS_RUN      = 'bracelli_diagnostics_run';
+	public const TURNI_MANAGE         = 'bracelli_turni_manage';
+	public const TURNI_SELF           = 'bracelli_turni_self';
+	public const CORSI_VIEW           = 'bracelli_corsi_view';
+	public const CORSI_TEACH          = 'bracelli_corsi_teach';
+	public const CORSI_MANAGE         = 'bracelli_corsi_manage';
+	public const CORSI_IMPORT         = 'bracelli_corsi_import';
+
+	/**
+	 * Capability che NON vengono date automaticamente all'amministratore: non sono privilegi,
+	 * ma indicano che l'account è un dipendente a cui si assegnano turni.
+	 */
+	public const NOT_FOR_ADMIN = [ self::TURNI_SELF, self::CORSI_TEACH ];
 
 	/**
 	 * Definizioni: capability => [ label, description, grantable, sensitive ].
@@ -76,6 +88,42 @@ final class Capabilities {
 				'grantable'   => true,
 				'sensitive'   => false,
 			],
+			self::TURNI_MANAGE         => [
+				'label'       => __( 'Gestione turni', 'bracelli-club' ),
+				'description' => __( 'Crea, modifica e annulla i turni dei dipendenti; consulta presenze e assenze di tutti.', 'bracelli-club' ),
+				'grantable'   => true,
+				'sensitive'   => true,
+			],
+			self::TURNI_SELF           => [
+				'label'       => __( 'Dipendente con turni', 'bracelli-club' ),
+				'description' => __( 'Può ricevere turni, vede solo i propri e registra la propria presenza o assenza.', 'bracelli-club' ),
+				'grantable'   => true,
+				'sensitive'   => false,
+			],
+			self::CORSI_VIEW           => [
+				'label'       => __( 'Calendario corsi', 'bracelli-club' ),
+				'description' => __( 'Consulta nell\'area riservata il calendario dei corsi attivi.', 'bracelli-club' ),
+				'grantable'   => true,
+				'sensitive'   => false,
+			],
+			self::CORSI_TEACH          => [
+				'label'       => __( 'Insegnante', 'bracelli-club' ),
+				'description' => __( 'Vede solo le proprie lezioni e registra la propria presenza o assenza.', 'bracelli-club' ),
+				'grantable'   => true,
+				'sensitive'   => false,
+			],
+			self::CORSI_MANAGE         => [
+				'label'       => __( 'Gestione orari dei corsi', 'bracelli-club' ),
+				'description' => __( 'Modifica orari e insegnanti dei corsi e consulta le presenze di tutti gli insegnanti.', 'bracelli-club' ),
+				'grantable'   => true,
+				'sensitive'   => true,
+			],
+			self::CORSI_IMPORT         => [
+				'label'       => __( 'Importazione corsi', 'bracelli-club' ),
+				'description' => __( 'Importa corsi e orari da file. Riservata agli amministratori.', 'bracelli-club' ),
+				'grantable'   => false,
+				'sensitive'   => true,
+			],
 		];
 	}
 
@@ -100,6 +148,12 @@ final class Capabilities {
 			self::PERMISSIONS_MANAGE   => false,
 			self::AUDIT_VIEW           => true,
 			self::DIAGNOSTICS_RUN      => true,
+			self::TURNI_MANAGE         => true,
+			self::TURNI_SELF           => true,
+			self::CORSI_VIEW           => true,
+			self::CORSI_TEACH          => true,
+			self::CORSI_MANAGE         => true,
+			self::CORSI_IMPORT         => false,
 		];
 	}
 

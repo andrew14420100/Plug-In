@@ -82,6 +82,23 @@ final class Navigation {
 				'cap'    => 'manage_options',
 				'module' => 'recovery',
 			],
+			// In coda: la dashboard aggiunge in fondo le voci che l'utente non ha ancora ordinato.
+			[
+				'id'     => 'area',
+				'label'  => __( 'Area riservata', 'bracelli-club' ),
+				'slug'   => 'bracelli-area',
+				'icon'   => 'user',
+				'cap'    => 'manage_options',
+				'module' => 'area',
+			],
+			[
+				'id'     => 'corsi',
+				'label'  => __( 'Importa corsi', 'bracelli-club' ),
+				'slug'   => 'bracelli-corsi-import',
+				'icon'   => 'calendar',
+				'cap'    => Capabilities::CORSI_IMPORT,
+				'module' => 'corsi',
+			],
 		];
 	}
 

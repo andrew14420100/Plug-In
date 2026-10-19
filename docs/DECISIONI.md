@@ -226,3 +226,14 @@
 8. **P2**: integrazioni esterne e AI spostate a versioni future.
 
 **Regola di prevalenza:** le precisazioni cronologicamente successive dello stesso requisito prevalgono su interpretazioni generiche precedenti, senza cancellare le scelte non contraddittorie. Esempio: l'idea iniziale di rimpiazzare tutti i plugin NON richiede di sostituire subito Club Manager né Elementor; è una roadmap soggetta a verifica.
+
+## Ottobre 2026 — Prototipo "Turni e presenze"
+
+- L'utente sospende l'intervista dei requisiti e autorizza **solo** un primo prototipo da provare in LocalWP: orari dei dipendenti gestiti dalla segreteria, visione dei propri turni, registrazione Presente/Assente. Le altre fasi non sono autorizzate.
+- Le presenze del personale (Presente/Assente) entrano nel prototipo; timbrature, ritardi, giustificazioni e ore lavorate restano escluse.
+- Decisioni tecniche del prototipo (P1–P9), compresa l'eccezione temporanea sul ruolo "Dipendente Bracelli" creato dal plugin: vedi [PROTOTIPO-TURNI-PRESENZE.md](PROTOTIPO-TURNI-PRESENZE.md) §2.
+
+## Ottobre 2026 — Area riservata, corsi e presenze insegnanti
+
+- L'utente autorizza solo: area riservata con accesso, pulsante «Area riservata» via shortcode, corsi caricati dai volantini, presenza Presente/Assente degli insegnanti. Nessun'altra funzione.
+- Le decisioni tecniche (A1–A12), comprese l'uscita della segreteria dalla bacheca WordPress e l'uso del ruolo Istruttore come insegnante: vedi [AREA-RISERVATA-CORSI.md](AREA-RISERVATA-CORSI.md) §2.

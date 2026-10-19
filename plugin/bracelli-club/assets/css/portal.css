@@ -1,0 +1,647 @@
+/*
+ * Area turni Bracelli Club (prototipo): pagina autonoma,
+ * indipendente dal tema del sito. Colori e forme sono variabili:
+ * per cambiarli basta modificare i valori qui sotto.
+ */
+
+:root {
+	--bcp-bg: #f4f5f7;
+	--bcp-surface: #fff;
+	--bcp-text: #15171c;
+	--bcp-muted: #5c6270;
+	--bcp-border: #dcdfe5;
+	--bcp-brand: #111318;
+	--bcp-brand-text: #fff;
+	--bcp-accent: #b8892b;
+	--bcp-accent-strong: #8a6514;
+	--bcp-present: #1d7a46;
+	--bcp-present-bg: #e3f4ea;
+	--bcp-absent: #b3261e;
+	--bcp-absent-bg: #fbe7e5;
+	--bcp-info-bg: #eef1f6;
+	--bcp-radius: 12px;
+	--bcp-focus: 0 0 0 3px rgba(184, 137, 43, 0.45);
+	color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+
+	:root {
+		--bcp-bg: #0f1115;
+		--bcp-surface: #181b21;
+		--bcp-text: #eceef2;
+		--bcp-muted: #a3a9b6;
+		--bcp-border: #2c313b;
+		--bcp-brand: #07080a;
+		--bcp-accent: #d4a849;
+		--bcp-accent-strong: #e7c27a;
+		--bcp-present: #6fd39a;
+		--bcp-present-bg: #12301f;
+		--bcp-absent: #ff8a80;
+		--bcp-absent-bg: #3a1614;
+		--bcp-info-bg: #1f2430;
+	}
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body.bcp {
+	margin: 0;
+	background: var(--bcp-bg);
+	color: var(--bcp-text);
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	font-size: 16px;
+	line-height: 1.5;
+}
+
+.bcp-skip {
+	position: absolute;
+	left: -999px;
+}
+
+.bcp-skip:focus {
+	left: 8px;
+	top: 8px;
+	z-index: 10;
+	padding: 8px 12px;
+	background: var(--bcp-surface);
+	color: var(--bcp-text);
+}
+
+.bcp-sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* Intestazione */
+.bcp-header {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 16px;
+	background: var(--bcp-brand);
+	color: var(--bcp-brand-text);
+	border-bottom: 3px solid var(--bcp-accent);
+}
+
+.bcp-brand {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	color: var(--bcp-brand-text);
+	text-decoration: none;
+}
+
+.bcp-brand:focus-visible {
+	outline: none;
+	box-shadow: var(--bcp-focus);
+	border-radius: 8px;
+}
+
+.bcp-logo {
+	display: block;
+	max-height: 56px;
+	width: auto;
+}
+
+.bcp-wordmark {
+	font-size: 1.2rem;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.bcp-wordmark strong {
+	color: var(--bcp-accent);
+}
+
+.bcp-area {
+	padding-left: 12px;
+	border-left: 1px solid rgba(255, 255, 255, 0.3);
+	font-size: 0.95rem;
+	opacity: 0.85;
+}
+
+.bcp-user {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: center;
+}
+
+.bcp-user__name {
+	font-weight: 600;
+}
+
+.bcp-header .bcp-link {
+	color: var(--bcp-brand-text);
+}
+
+.bcp-header .bcp-button--ghost {
+	border-color: rgba(255, 255, 255, 0.5);
+	color: var(--bcp-brand-text);
+}
+
+/* Contenuto */
+.bcp-main {
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 20px 16px 48px;
+}
+
+.bcp-title {
+	margin: 0 0 16px;
+	font-size: 1.6rem;
+}
+
+.bcp-main h2 {
+	margin: 24px 0 12px;
+	font-size: 1.15rem;
+}
+
+.bcp-card {
+	margin: 0 0 16px;
+	padding: 16px;
+	background: var(--bcp-surface);
+	border: 1px solid var(--bcp-border);
+	border-radius: var(--bcp-radius);
+}
+
+.bcp-card h2 {
+	margin-top: 0;
+}
+
+.bcp-muted {
+	color: var(--bcp-muted);
+	font-size: 0.92rem;
+}
+
+.bcp-login {
+	max-width: 420px;
+	margin: 24px auto;
+}
+
+/* Schede */
+.bcp-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 16px;
+}
+
+.bcp-tab {
+	padding: 8px 14px;
+	border: 1px solid var(--bcp-border);
+	border-radius: 999px;
+	background: var(--bcp-surface);
+	color: var(--bcp-text);
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.bcp-tab.is-active {
+	background: var(--bcp-brand);
+	border-color: var(--bcp-brand);
+	color: var(--bcp-brand-text);
+}
+
+/* Moduli */
+.bcp-form label,
+.bcp-field label {
+	display: block;
+	margin: 12px 0 4px;
+	font-weight: 600;
+}
+
+.bcp-form input[type="text"],
+.bcp-form input[type="password"],
+.bcp-form input[type="date"],
+.bcp-form input[type="time"],
+.bcp-form select,
+.bcp-filters input,
+.bcp-filters select {
+	width: 100%;
+	min-height: 44px;
+	padding: 8px 10px;
+	border: 1px solid var(--bcp-border);
+	border-radius: 8px;
+	background: var(--bcp-surface);
+	color: var(--bcp-text);
+	font: inherit;
+}
+
+.bcp-form [aria-invalid="true"] {
+	border-color: var(--bcp-absent);
+}
+
+.bcp-field-error {
+	margin: 4px 0 0;
+	color: var(--bcp-absent);
+	font-size: 0.92rem;
+}
+
+.bcp-check {
+	display: flex !important;
+	gap: 8px;
+	align-items: center;
+	font-weight: 400 !important;
+}
+
+.bcp-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: center;
+	margin-top: 16px;
+}
+
+.bcp-row--fields {
+	margin-top: 0;
+	align-items: flex-start;
+}
+
+.bcp-row--fields .bcp-field {
+	flex: 1 1 140px;
+}
+
+.bcp-filters {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 0 12px;
+	align-items: end;
+}
+
+.bcp-filters .bcp-button {
+	margin-top: 12px;
+}
+
+/* Pulsanti e collegamenti */
+.bcp-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	padding: 8px 18px;
+	border: 1px solid var(--bcp-border);
+	border-radius: 999px;
+	background: var(--bcp-surface);
+	color: var(--bcp-text);
+	font: inherit;
+	font-weight: 600;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.bcp-button--primary {
+	background: var(--bcp-accent);
+	border-color: var(--bcp-accent);
+	color: #111318;
+}
+
+.bcp-button--danger {
+	background: var(--bcp-absent);
+	border-color: var(--bcp-absent);
+	color: var(--bcp-surface);
+}
+
+.bcp-button--ghost {
+	background: transparent;
+}
+
+.bcp-link {
+	color: var(--bcp-accent-strong);
+	font-weight: 600;
+}
+
+.bcp-link--danger {
+	color: var(--bcp-absent);
+}
+
+.bcp-button:focus-visible,
+.bcp-link:focus-visible,
+.bcp-tab:focus-visible,
+.bcp-form input:focus-visible,
+.bcp-form select:focus-visible,
+.bcp-filters input:focus-visible,
+.bcp-filters select:focus-visible {
+	outline: none;
+	box-shadow: var(--bcp-focus);
+}
+
+/* Avvisi ed etichette */
+.bcp-alert {
+	margin: 0 0 16px;
+	padding: 12px 14px;
+	border-radius: 8px;
+	background: var(--bcp-info-bg);
+	border-left: 4px solid var(--bcp-muted);
+}
+
+.bcp-alert--success {
+	background: var(--bcp-present-bg);
+	border-left-color: var(--bcp-present);
+}
+
+.bcp-alert--error {
+	background: var(--bcp-absent-bg);
+	border-left-color: var(--bcp-absent);
+}
+
+.bcp-badge {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 999px;
+	background: var(--bcp-info-bg);
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+
+.bcp-badge--present {
+	background: var(--bcp-present-bg);
+	color: var(--bcp-present);
+}
+
+.bcp-badge--absent,
+.bcp-badge--cancelled {
+	background: var(--bcp-absent-bg);
+	color: var(--bcp-absent);
+}
+
+.bcp-badge--today {
+	background: var(--bcp-accent);
+	color: #111318;
+}
+
+/* Riepilogo */
+.bcp-stats {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 16px;
+	padding: 0;
+	list-style: none;
+}
+
+.bcp-stats li {
+	padding: 8px 14px;
+	border: 1px solid var(--bcp-border);
+	border-radius: var(--bcp-radius);
+	background: var(--bcp-surface);
+}
+
+.bcp-stats .is-present strong {
+	color: var(--bcp-present);
+}
+
+.bcp-stats .is-absent strong,
+.bcp-stats .is-cancelled strong {
+	color: var(--bcp-absent);
+}
+
+/* Tabella (diventa a schede sugli schermi stretti) */
+.bcp-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: var(--bcp-surface);
+	border: 1px solid var(--bcp-border);
+	border-radius: var(--bcp-radius);
+	overflow: hidden;
+}
+
+.bcp-table th,
+.bcp-table td {
+	padding: 10px 12px;
+	border-bottom: 1px solid var(--bcp-border);
+	text-align: left;
+	vertical-align: top;
+}
+
+.bcp-table thead th {
+	background: var(--bcp-info-bg);
+	font-size: 0.9rem;
+}
+
+.bcp-table tr.is-cancelled td:not(.bcp-actions) {
+	color: var(--bcp-muted);
+}
+
+.bcp-actions {
+	white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+
+	.bcp-table thead {
+		display: none;
+	}
+
+	.bcp-table,
+	.bcp-table tbody,
+	.bcp-table tr,
+	.bcp-table td {
+		display: block;
+		width: 100%;
+	}
+
+	.bcp-table tr {
+		border-bottom: 2px solid var(--bcp-border);
+	}
+
+	.bcp-table td {
+		border: 0;
+		padding: 6px 12px;
+	}
+
+	.bcp-table td::before {
+		content: attr(data-label);
+		display: block;
+		color: var(--bcp-muted);
+		font-size: 0.8rem;
+	}
+}
+
+/* Riepilogo turno e storico */
+.bcp-summary {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 12px;
+}
+
+.bcp-summary dt {
+	color: var(--bcp-muted);
+	font-size: 0.85rem;
+}
+
+.bcp-summary dd {
+	margin: 0;
+	font-weight: 600;
+}
+
+.bcp-history {
+	margin: 0;
+	padding-left: 20px;
+}
+
+.bcp-history li {
+	margin-bottom: 8px;
+}
+
+.bcp-history__when {
+	color: var(--bcp-muted);
+}
+
+/* Turni del dipendente */
+.bcp-shift.is-today {
+	border-color: var(--bcp-accent);
+	border-width: 2px;
+}
+
+.bcp-shift.is-cancelled {
+	opacity: 0.75;
+}
+
+.bcp-shift__head {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+	justify-content: space-between;
+}
+
+.bcp-shift__date,
+.bcp-shift__time {
+	margin: 0;
+	font-size: 1.1rem;
+	font-weight: 700;
+}
+
+.bcp-attendance {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-top: 8px;
+}
+
+.bcp-attendance .bcp-button {
+	flex: 1 1 140px;
+}
+
+.bcp-button--present.is-selected {
+	background: var(--bcp-present);
+	border-color: var(--bcp-present);
+	color: var(--bcp-surface);
+}
+
+.bcp-button--absent.is-selected {
+	background: var(--bcp-absent);
+	border-color: var(--bcp-absent);
+	color: var(--bcp-surface);
+}
+
+/* Pagina Accedi */
+.bcp-login__logo {
+	display: block;
+	width: 120px;
+	height: auto;
+	margin: 0 auto 8px;
+}
+
+/* Calendario settimanale dei corsi */
+.bcp-week {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+.bcp-week .bcp-card {
+	margin: 0;
+}
+
+.bcp-day h2 {
+	margin-top: 0;
+	padding-bottom: 8px;
+	border-bottom: 2px solid var(--bcp-accent);
+}
+
+.bcp-lessons,
+.bcp-plain,
+.bcp-slots {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.bcp-lessons li {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 0 10px;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--bcp-border);
+}
+
+.bcp-lessons li:last-child {
+	border-bottom: 0;
+}
+
+.bcp-lesson__time {
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.bcp-lesson__section {
+	grid-column: 2;
+}
+
+.bcp-plain li {
+	padding: 6px 0;
+}
+
+/* Corsi e orari (segreteria) */
+.bcp-course__head {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 12px;
+	align-items: baseline;
+	justify-content: space-between;
+}
+
+.bcp-course__head h2 {
+	margin: 0;
+}
+
+.bcp-slots li {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 12px;
+	align-items: center;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--bcp-border);
+}
+
+.bcp-slots li.is-cancelled .bcp-slot__when {
+	color: var(--bcp-muted);
+	text-decoration: line-through;
+}
+
+.bcp-slot__when {
+	min-width: 170px;
+	font-weight: 600;
+}
+
+.bcp-slot__teacher {
+	flex: 1 1 200px;
+}
+
+.bcp-shift__course {
+	margin: 4px 0 0;
+	font-weight: 600;
+}

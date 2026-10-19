@@ -43,6 +43,43 @@ $WP core install --url="http://127.0.0.1:$E2E_PORT" --title="Bracelli E2E" --adm
 $WP plugin install "$E2E_ZIP" --activate --force
 $WP user create segreteria segreteria@example.org --role=bracelli_segreteria --user_pass=e2e-staff-pass --display_name="Segreteria Prova" --quiet
 $WP user create abbonato abbonato@example.org --role=subscriber --user_pass=e2e-sub-pass --quiet
+# Prototipo Turni e presenze: due dipendenti fittizi, fuso orario italiano e permalink "parlanti" come su un sito reale.
+$WP user create dipendente1 dipendente1@example.org --role=bracelli_dipendente --user_pass=e2e-dip1-pass --display_name="Dipendente Prova Uno" --quiet
+$WP user create dipendente2 dipendente2@example.org --role=bracelli_dipendente --user_pass=e2e-dip2-pass --display_name="Dipendente Prova Due" --quiet
+$WP option update timezone_string Europe/Rome --quiet
+# Corsi e presenze insegnanti: account e corsi FITTIZI (mai dati reali nei test).
+$WP user create insegnante1 insegnante1@example.org --role=bracelli_istruttore --user_pass=e2e-ins1-pass --display_name="Insegnante Prova Uno" --quiet
+$WP user create insegnante2 insegnante2@example.org --role=bracelli_istruttore --user_pass=e2e-ins2-pass --display_name="Insegnante Prova Due" --quiet
+$WP user create socio1 socio1@example.org --role=bracelli_socio --user_pass=e2e-socio-pass --display_name="Socio Prova" --quiet
+CORSI_CSV=$(mktemp --suffix=.csv)
+{
+	echo "chiave;sezione;corso;gruppo;giorno;inizio;fine;insegnante;sede;note"
+	for giorno in Lunedì Martedì Mercoledì Giovedì Venerdì Sabato Domenica; do
+		echo "e2e-mattino;Sezione Prova;Corso Prova Mattino;adulti;$giorno;08:00;09:00;;;"
+		echo "e2e-collega;Sezione Prova;Corso Prova Collega;;$giorno;10:00;11:00;Nome Fittizio;;"
+	done
+	echo "e2e-senza-orario;Altra Sezione;Corso Prova Senza Orario;;;;;;;Orari da definire"
+} > "$CORSI_CSV"
+$WP bracelli-corsi import "$CORSI_CSV" --yes --quiet
+rm -f "$CORSI_CSV"
+INS2=$($WP user get insegnante2 --field=ID)
+$WP db query "UPDATE $($WP db prefix)bc_corsi_slots SET teacher_id = $INS2 WHERE ext_key LIKE 'e2e-collega|%'"
+# Pagina con il pulsante "Area riservata" (shortcode), come nel widget Shortcode di Elementor.
+$WP post create --post_type=page --post_status=publish --post_title="Prova pulsante" --post_name=prova-pulsante --post_content='[bracelli_area_riservata]' --quiet
+$WP rewrite structure '/%postname%/' --quiet
+# WP-CLI non sa se Apache ha mod_rewrite: il file .htaccess standard di WordPress si scrive qui.
+cat > "$E2E_DIR/.htaccess" <<'HTACCESS'
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+HTACCESS
 rm -f "$E2E_DIR/wp-content/debug.log"
 
 if [ "$E2E_SERVER" = "apache" ]; then

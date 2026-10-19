@@ -20,6 +20,8 @@ final class Roles {
 	public const SEGRETERIA    = 'bracelli_segreteria';
 	public const ISTRUTTORE    = 'bracelli_istruttore';
 	public const GESTORE_CORSI = 'bracelli_gestore_corsi';
+	public const DIPENDENTE    = 'bracelli_dipendente';
+	public const SOCIO         = 'bracelli_socio';
 
 	/**
 	 * Ruoli e capability predefinite. Le etichette non sono tradotte qui perché
@@ -31,15 +33,26 @@ final class Roles {
 		return [
 			self::SEGRETERIA    => [
 				'label' => 'Segreteria Bracelli',
-				'caps'  => [ Capabilities::DASHBOARD_VIEW ],
+				'caps'  => [ Capabilities::DASHBOARD_VIEW, Capabilities::TURNI_MANAGE, Capabilities::CORSI_VIEW, Capabilities::CORSI_MANAGE ],
 			],
+			// Insegnante: vede solo le proprie lezioni e registra la propria presenza.
 			self::ISTRUTTORE    => [
 				'label' => 'Istruttore Bracelli',
-				'caps'  => [ Capabilities::DASHBOARD_VIEW ],
+				'caps'  => [ Capabilities::DASHBOARD_VIEW, Capabilities::CORSI_VIEW, Capabilities::CORSI_TEACH ],
 			],
 			self::GESTORE_CORSI => [
 				'label' => 'Gestore corsi Bracelli',
-				'caps'  => [ Capabilities::DASHBOARD_VIEW ],
+				'caps'  => [ Capabilities::DASHBOARD_VIEW, Capabilities::CORSI_VIEW, Capabilities::CORSI_MANAGE ],
+			],
+			// Prototipo Turni e presenze: usa solo l'area turni, senza bacheca WordPress.
+			self::DIPENDENTE    => [
+				'label' => 'Dipendente Bracelli',
+				'caps'  => [ Capabilities::TURNI_SELF ],
+			],
+			// Socio o cliente: per ora consulta il calendario dei corsi attivi.
+			self::SOCIO         => [
+				'label' => 'Socio Bracelli',
+				'caps'  => [ Capabilities::CORSI_VIEW ],
 			],
 		];
 	}
@@ -67,9 +80,27 @@ final class Roles {
 		$admin = get_role( 'administrator' );
 		if ( null !== $admin ) {
 			foreach ( Capabilities::names() as $cap ) {
-				if ( ! $admin->has_cap( $cap ) ) {
+				if ( ! in_array( $cap, Capabilities::NOT_FOR_ADMIN, true ) && ! $admin->has_cap( $cap ) ) {
 					$admin->add_cap( $cap );
 				}
+			}
+		}
+	}
+
+	/**
+	 * Aggiunge capability a un ruolo esistente senza toglierne altre (usato dalle migrazioni dei moduli).
+	 *
+	 * @param string   $slug Ruolo.
+	 * @param string[] $caps Capability da aggiungere.
+	 */
+	public static function grant( string $slug, array $caps ): void {
+		$role = get_role( $slug );
+		if ( null === $role ) {
+			return;
+		}
+		foreach ( $caps as $cap ) {
+			if ( ! $role->has_cap( $cap ) ) {
+				$role->add_cap( $cap );
 			}
 		}
 	}

@@ -123,7 +123,7 @@ final class Widgets {
 						],
 						[
 							'id'    => 'courses',
-							'label' => __( 'Corsi e presenze', 'bracelli-club' ),
+							'label' => __( 'Corsi e presenze iscritti', 'bracelli-club' ),
 							'phase' => 4,
 						],
 						[
