@@ -64,6 +64,21 @@ final class MemberRepository {
 	}
 
 	/**
+	 * Esporta tutte le anagrafiche con i soli campi previsti per il CSV.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function export_all(): array {
+		$table = $this->table();
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- tabella interna, nessun input.
+		$rows = $this->db->get_results(
+			"SELECT first_name, last_name, email, phone, birth_date, address, city, postal_code, status, notes FROM {$table} ORDER BY last_name ASC, first_name ASC, id ASC",
+			ARRAY_A
+		);
+		return array_map( [ $this, 'cast' ], (array) $rows );
+	}
+
+	/**
 	 * Record singolo.
 	 *
 	 * @return array<string, mixed>|null
