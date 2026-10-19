@@ -124,6 +124,20 @@ Prova su un sito usa e getta:
 
 Lo shortcode non modifica automaticamente l'header: va inserito a mano, solo nella copia locale.
 
+### Prova senza installare nulla: WordPress Playground
+[WordPress Playground](https://playground.wordpress.net/) avvia un WordPress completo dentro la scheda del browser: niente installazioni sul PC, niente hosting, nessun contatto con il sito ufficiale.
+
+1. Apri `https://playground.wordpress.net/` (si entra già come amministratore).
+2. Plugin → Aggiungi nuovo → Carica plugin → scegli lo ZIP → Installa → Attiva.
+3. Apri una volta **Bracelli Club** nella bacheca, poi segui i passi 2–6 qui sopra.
+4. Per vedere il portale da un altro ruolo, nella stessa scheda (Playground vive solo lì): **Esci** dall'amministratore e accedi con l'account fittizio; per tornare amministratore accedi con `admin` / `password`.
+
+Avvertenze:
+- Playground usa SQLite al posto di MySQL; dalla 0.3.0 il migratore lo riconosce (GET_LOCK non esiste in SQLite). Le prove valgono per l'interfaccia e i permessi, non per prestazioni o compatibilità con il database di TopHost.
+- I dati restano nella scheda: chiudendola si perdono, salvo usare il salvataggio offerto da Playground.
+- Le email non partono: «Password dimenticata?» non è verificabile.
+- Elementor in Playground non è stato provato.
+
 ## 7. Verifiche eseguite (container Linux, non sul PC dell'utente)
 
 | Verifica | Esito |

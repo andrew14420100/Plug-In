@@ -168,7 +168,9 @@ final class Migrator {
 		$lock = $this->lock_name();
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- lock applicativo, non cacheabile.
 		$got = $this->db->get_var( $this->db->prepare( 'SELECT GET_LOCK(%s, 0)', $lock ) );
-		if ( '1' !== (string) $got ) {
+		// SQLite (WordPress Playground) non ha GET_LOCK: il traduttore risponde "1=1"; lì il file
+		// di database è già serializzato e il lock applicativo non serve.
+		if ( '1' !== (string) $got && ! $this->is_sqlite() ) {
 			return $this->remember(
 				[
 					'status' => 'locked',
@@ -215,6 +217,13 @@ final class Migrator {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- rilascio lock applicativo.
 			$this->db->query( $this->db->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) );
 		}
+	}
+
+	/**
+	 * Indica se WordPress usa il driver SQLite (es. WordPress Playground).
+	 */
+	private function is_sqlite(): bool {
+		return defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE;
 	}
 
 	/**

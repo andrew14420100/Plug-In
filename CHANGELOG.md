@@ -10,6 +10,7 @@ Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it/1.1.0/); ver
 - Ruolo "Socio Bracelli"; l'Istruttore è l'insegnante; capability `bracelli_corsi_view|teach|manage|import`.
 - Il modulo Turni diventa una sezione dell'area riservata (stesso portale).
 - Test: 18 di integrazione e 9 end-to-end nuovi; ciclo di vita esteso; documento `docs/AREA-RISERVATA-CORSI.md`.
+- Migratore compatibile con WordPress Playground (SQLite non ha `GET_LOCK`: prima le migrazioni restavano «locked»); istruzioni di prova in Playground.
 
 ### Aggiunto — Prototipo Turni e presenze (plugin 0.2.0, solo LocalWP, non rilasciato)
 - Modulo `turni` 0.1.0: area riservata frontend `/area-bracelli/` indipendente dal tema, con accesso tramite le credenziali WordPress.
