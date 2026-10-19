@@ -670,7 +670,7 @@ final class SociSection implements SectionInterface {
 			'last_name'       => 'last_name',
 			'last-name'       => 'last_name',
 			'email'           => 'email',
-			'e-mail'          => 'email',
+			'e_mail'          => 'email',
 			'telefono'        => 'phone',
 			'phone'           => 'phone',
 			'cellulare'       => 'phone',
@@ -727,7 +727,7 @@ final class SociSection implements SectionInterface {
 				'address'    => '',
 				'city'       => '',
 				'postal_code' => '',
-				'status'     => 'active',
+				'status'      => 'active',
 				'notes'      => '',
 			];
 			foreach ( $columns as $field => $index ) {
@@ -777,8 +777,8 @@ final class SociSection implements SectionInterface {
 				'active'     => 'active',
 				'sospeso'    => 'suspended',
 				'suspended'  => 'suspended',
-				'archiviato'  => 'archived',
-				'archived'    => 'archived',
+				'archiviato' => 'archived',
+				'archived'   => 'archived',
 			];
 			if ( ! isset( $status_map[ $status_text ] ) ) {
 				$errors[] = __( 'Stato non valido: usa Attivo, Sospeso o Archiviato.', 'bracelli-club' );
