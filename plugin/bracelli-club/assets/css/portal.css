@@ -915,6 +915,7 @@ a.bcp-secretary-link:hover {
 }
 
 @media (max-width: 640px) {
+
 	.bcp-form-grid {
 		grid-template-columns: minmax(0, 1fr);
 		gap: 14px;
@@ -991,6 +992,7 @@ a.bcp-secretary-link:hover {
 }
 
 @media (max-width: 640px) {
+
 	.bcp-soci-toolbar {
 		align-items: stretch;
 	}
