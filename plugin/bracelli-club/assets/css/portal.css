@@ -843,3 +843,101 @@ a.bcp-secretary-link:hover {
 		transition: none;
 	}
 }
+
+
+/* Archivio soci: anagrafiche, relazioni familiari e storico. */
+.bcp-form-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 18px;
+}
+.bcp-form-grid .bcp-field {
+	min-width: 0;
+}
+.bcp-form-grid .bcp-field--full {
+	grid-column: 1 / -1;
+}
+.bcp-form-grid input,
+.bcp-form-grid select,
+.bcp-form-grid textarea {
+	width: 100%;
+	min-width: 0;
+}
+.bcp-form-grid select[multiple] {
+	min-height: 132px;
+	padding: 10px;
+}
+.bcp-soci-family h3 {
+	margin-top: 18px;
+}
+.bcp-soci-family ul {
+	margin: 8px 0 0;
+	padding-left: 22px;
+}
+.bcp-soci-history {
+	margin-top: 18px;
+}
+.bcp-soci-history td,
+.bcp-soci-history th {
+	vertical-align: top;
+}
+.bcp-pagination {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 18px 0;
+}
+.bcp-pagination .bcp-button {
+	margin: 0;
+}
+.bcp-alert--warning {
+	border-left: 4px solid var(--bcp-gold, #b89b5e);
+	background: rgba(184, 155, 94, 0.10);
+	padding: 14px 16px;
+	border-radius: 8px;
+	margin: 14px 0;
+}
+.bcp-alert--warning ul {
+	margin-bottom: 0;
+}
+@media (max-width: 640px) {
+	.bcp-form-grid {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 14px;
+	}
+	.bcp-form-grid .bcp-field--full {
+		grid-column: auto;
+	}
+	.bcp-soci-history .bcp-table,
+	.bcp-soci-history .bcp-table tbody,
+	.bcp-soci-history .bcp-table tr,
+	.bcp-soci-history .bcp-table td {
+		display: block;
+		width: 100%;
+	}
+	.bcp-soci-history .bcp-table thead {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+	.bcp-soci-history .bcp-table tr {
+		padding: 10px 0;
+		border-bottom: 1px solid var(--bcp-border, #dedede);
+	}
+	.bcp-soci-history .bcp-table td {
+		padding: 7px 12px;
+		border: 0;
+	}
+	.bcp-soci-history .bcp-table td::before {
+		content: attr(data-label);
+		font-weight: 600;
+		display: block;
+		margin-bottom: 2px;
+	}
+}
