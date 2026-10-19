@@ -31,6 +31,8 @@ final class Registry {
 			new M2026100006GrantCourseCapabilities(),
 			new M2026100007AddSlotAssignedFrom(),
 			new M2026100008CreateCatalogAndRooms(),
+			new M2026100009CreateMembersTable(),
+			new M2026100010GrantMembersCapability(),
 		];
 	}
 }
