@@ -85,7 +85,14 @@ final class SociSection implements SectionInterface {
 				$result,
 				$input,
 				$id > 0 ? 'modifica-socio' : 'nuovo-socio',
-				$id > 0 ? [ 'vista' => 'modifica-socio', 'socio' => $id ] : [ 'vista' => 'nuovo-socio' ]
+				$id > 0
+					? [
+						'vista' => 'modifica-socio',
+						'socio' => $id,
+					]
+					: [
+						'vista' => 'nuovo-socio',
+					]
 			);
 			return;
 		}
