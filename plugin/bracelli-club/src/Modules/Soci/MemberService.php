@@ -37,17 +37,18 @@ final class MemberService {
 		if ( $id > 0 && null === $this->repo->find( $id ) ) {
 			return $this->result( false, 'not_found' );
 		}
-		$data = [
-			'first_name' => sanitize_text_field( $input['first_name'] ?? '' ),
-			'last_name'  => sanitize_text_field( $input['last_name'] ?? '' ),
-			'email'      => sanitize_email( $input['email'] ?? '' ),
-			'phone'      => sanitize_text_field( $input['phone'] ?? '' ),
-			'birth_date' => $this->birth_date( $input['birth_date'] ?? '' ),
-			'address'    => sanitize_text_field( $input['address'] ?? '' ),
-			'city'       => sanitize_text_field( $input['city'] ?? '' ),
-			'postal_code'=> sanitize_text_field( $input['postal_code'] ?? '' ),
-			'status'     => in_array( $input['status'] ?? 'active', [ 'active', 'suspended' ], true ) ? $input['status'] : 'active',
-			'notes'      => sanitize_textarea_field( $input['notes'] ?? '' ),
+		$status = $input['status'] ?? 'active';
+		$data   = [
+			'first_name'  => sanitize_text_field( $input['first_name'] ?? '' ),
+			'last_name'   => sanitize_text_field( $input['last_name'] ?? '' ),
+			'email'       => sanitize_email( $input['email'] ?? '' ),
+			'phone'       => sanitize_text_field( $input['phone'] ?? '' ),
+			'birth_date'  => $this->birth_date( $input['birth_date'] ?? '' ),
+			'address'     => sanitize_text_field( $input['address'] ?? '' ),
+			'city'        => sanitize_text_field( $input['city'] ?? '' ),
+			'postal_code' => sanitize_text_field( $input['postal_code'] ?? '' ),
+			'status'      => in_array( $status, [ 'active', 'suspended' ], true ) ? $status : 'active',
+			'notes'       => sanitize_textarea_field( $input['notes'] ?? '' ),
 		];
 		$errors = [];
 		if ( '' === $data['first_name'] ) {
@@ -90,7 +91,12 @@ final class MemberService {
 			$errors['notes'] = __( 'Le note superano la lunghezza consentita.', 'bracelli-club' );
 		}
 		if ( [] !== $errors ) {
-			return [ 'ok' => false, 'code' => 'invalid', 'errors' => $errors, 'id' => $id ];
+			return [
+				'ok'     => false,
+				'code'   => 'invalid',
+				'errors' => $errors,
+				'id'     => $id,
+			];
 		}
 		$saved = $this->repo->save( $data, $actor, $id );
 		if ( $saved < 1 ) {
@@ -102,7 +108,10 @@ final class MemberService {
 				'module'        => 'soci',
 				'resource_type' => 'member',
 				'resource_id'   => (string) $saved,
-				'diff'          => [ 'fields' => array_keys( $data ), 'status' => $data['status'] ],
+				'diff'          => [
+					'fields' => array_keys( $data ),
+					'status' => $data['status'],
+				],
 				'actor_id'      => $actor,
 			]
 		);
@@ -141,7 +150,12 @@ final class MemberService {
 	 * @return array{ok: bool, code: string, errors: array<string, string>, id: int}
 	 */
 	private function result( bool $ok, string $code, int $id = 0 ): array {
-		return [ 'ok' => $ok, 'code' => $code, 'errors' => [], 'id' => $id ];
+		return [
+			'ok'     => $ok,
+			'code'   => $code,
+			'errors' => [],
+			'id'     => $id,
+		];
 	}
 
 	private function birth_date( string $value ): ?string {
