@@ -56,11 +56,29 @@ final class MemberService {
 		if ( '' === $data['last_name'] ) {
 			$errors['last_name'] = __( 'Inserisci il cognome.', 'bracelli-club' );
 		}
+		if ( strlen( $data['first_name'] ) > 100 ) {
+			$errors['first_name'] = __( 'Il nome è troppo lungo.', 'bracelli-club' );
+		}
+		if ( strlen( $data['last_name'] ) > 100 ) {
+			$errors['last_name'] = __( 'Il cognome è troppo lungo.', 'bracelli-club' );
+		}
+		if ( strlen( $data['email'] ) > 190 ) {
+			$errors['email'] = __( 'L’email è troppo lunga.', 'bracelli-club' );
+		}
 		if ( '' !== $data['email'] && ! is_email( $data['email'] ) ) {
 			$errors['email'] = __( 'Inserisci un indirizzo email valido.', 'bracelli-club' );
 		}
 		if ( '' !== $data['email'] && $this->repo->email_exists( $data['email'], $id ) ) {
 			$errors['email'] = __( 'Esiste già un socio con questo indirizzo email.', 'bracelli-club' );
+		}
+		if ( strlen( $data['address'] ) > 190 ) {
+			$errors['address'] = __( 'L’indirizzo è troppo lungo.', 'bracelli-club' );
+		}
+		if ( strlen( $data['city'] ) > 100 ) {
+			$errors['city'] = __( 'Il comune è troppo lungo.', 'bracelli-club' );
+		}
+		if ( strlen( $data['postal_code'] ) > 20 ) {
+			$errors['postal_code'] = __( 'Il CAP è troppo lungo.', 'bracelli-club' );
 		}
 		if ( strlen( $data['phone'] ) > 40 ) {
 			$errors['phone'] = __( 'Il numero di telefono è troppo lungo.', 'bracelli-club' );
