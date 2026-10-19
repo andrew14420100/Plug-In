@@ -110,6 +110,18 @@ final class MemberRepository {
 	}
 
 	/**
+	 * Verifica email già utilizzata, escludendo il record in modifica.
+	 */
+	public function email_exists( string $email, int $exclude_id = 0 ): bool {
+		if ( '' === $email ) {
+			return false;
+		}
+		$table = $this->table();
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- tabella interna e valori parametrizzati.
+		return (int) $this->db->get_var( $this->db->prepare( "SELECT COUNT(*) FROM {$table} WHERE email = %s AND id <> %d", $email, $exclude_id ) ) > 0;
+	}
+
+	/**
 	 * Converte i tipi restituiti da wpdb.
 	 *
 	 * @param array<string, mixed> $row Riga.
