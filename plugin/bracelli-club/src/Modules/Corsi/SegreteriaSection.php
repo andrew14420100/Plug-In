@@ -63,7 +63,12 @@ final class SegreteriaSection implements SectionInterface {
 
 	/** {@inheritDoc} */
 	public function handle( Portal $portal, int $user, string $action, int $id ): void {
-		$portal->redirect( [ 'vista' => 'segreteria', 'esito' => 'invalid' ] );
+		$portal->redirect(
+			[
+				'vista' => 'segreteria',
+				'esito' => 'invalid',
+			]
+		);
 	}
 
 	/** {@inheritDoc} */
@@ -93,7 +98,7 @@ final class SegreteriaSection implements SectionInterface {
 				static fn( array $slot ): bool => 'active' === ( $slot['course_status'] ?? '' )
 			)
 		);
-		$active_rooms   = count(
+		$active_rooms    = count(
 			array_filter(
 				$rooms,
 				static fn( array $room ): bool => 'active' === ( $room['status'] ?? '' )
@@ -105,7 +110,7 @@ final class SegreteriaSection implements SectionInterface {
 				static fn( array $slot ): bool => (int) ( $slot['teacher_id'] ?? 0 ) < 1
 			)
 		);
-		$without_room    = count(
+		$without_room     = count(
 			array_filter(
 				$active_slots,
 				static fn( array $slot ): bool => (int) ( $slot['room_id'] ?? 0 ) < 1
