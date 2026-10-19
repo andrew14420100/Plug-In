@@ -77,9 +77,9 @@ test.describe.serial( 'Corsi e presenze insegnanti', () => {
 		await expect( page.locator( 'h1' ) ).toHaveText(
 			'Panoramica segreteria'
 		);
-		await expect(
-			page.locator( '.bcp-secretary-metric' )
-		).toHaveCount( 5 );
+		await expect( page.locator( '.bcp-secretary-metric' ) ).toHaveCount(
+			5
+		);
 		await expect(
 			page.locator( '.bcp-secretary-links' ).first()
 		).toContainText( 'Corsi e orari' );
