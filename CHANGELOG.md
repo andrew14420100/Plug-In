@@ -4,6 +4,13 @@ Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it/1.1.0/); ver
 
 ## [Non rilasciato]
 
+### Aggiunto — Area Segreteria, fase 1 (in verifica)
+- Nuova panoramica iniziale per gli utenti autorizzati alla gestione dei corsi.
+- Indicatori ricavati dal database per corsi, orari, sale e assegnazioni mancanti.
+- Accessi rapidi alle viste già esistenti; archivio soci, iscrizioni, pagamenti e documenti sono dichiarati pianificati, senza dati dimostrativi.
+- Roadmap e criteri di accettazione in docs/SEGRETERIA-ROADMAP.md e docs/SEGRETERIA-FASE-1.md.
+
+
 ### Modificato — Fasi nella dashboard (plugin 0.4.1; pacchetto di collaudo 0.1.11, non rilasciato)
 - Il widget «Aree gestionali» (vecchie fasi 2–6 con «Non ancora disponibile») diventa «Avanzamento del progetto»: fasi 0–4 del modulo Corsi nell'ordine del piano attuale, con stato reale (Completata / In corso / Pianificata, sempre in testo e simbolo oltre al colore) e indicatore «N di 5 fasi completate»; le altre aree del gestionale compaiono come «Non ancora avviata». Fonte unica: `src/Modules/Dashboard/Roadmap.php`.
 - Stati della 0.4.1: Fase 0 completata (CI verde); Fase 1 in corso (sviluppata, in collaudo); Fasi 2–4 pianificate. Un test verifica che gli stati corrispondano alle funzioni presenti nel codice.
