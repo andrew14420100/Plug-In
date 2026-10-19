@@ -81,7 +81,12 @@ final class SociSection implements SectionInterface {
 	public function handle( Portal $portal, int $user, string $action, int $id ): void {
 		$this->portal = $portal;
 		if ( ! $this->service->can_manage( $user ) ) {
-			$portal->redirect( [ 'vista' => 'soci', 'esito' => 'forbidden' ] );
+			$portal->redirect(
+				[
+					'vista' => 'soci',
+					'esito' => 'forbidden',
+				]
+			);
 		}
 		if ( 'export' === $action ) {
 			$this->download_csv( $user, false );
@@ -94,7 +99,12 @@ final class SociSection implements SectionInterface {
 			set_transient( $this->import_key( $user ), $preview, 30 * MINUTE_IN_SECONDS );
 			delete_transient( $this->report_key( $user ) );
 			$esito = ! empty( $preview['fatal_errors'] ) ? 'import_file_error' : ( 0 === (int) $preview['error_count'] ? 'import_preview' : 'import_invalid' );
-			$portal->redirect( [ 'vista' => 'importa-soci', 'esito' => $esito ] );
+			$portal->redirect(
+				[
+					'vista' => 'importa-soci',
+					'esito' => $esito,
+				]
+			);
 		}
 		if ( 'import_apply' === $action ) {
 			$this->apply_import( $portal, $user );
@@ -102,7 +112,12 @@ final class SociSection implements SectionInterface {
 		if ( 'import_discard' === $action ) {
 			delete_transient( $this->import_key( $user ) );
 			delete_transient( $this->report_key( $user ) );
-			$portal->redirect( [ 'vista' => 'soci', 'esito' => 'import_discarded' ] );
+			$portal->redirect(
+				[
+					'vista' => 'soci',
+					'esito' => 'import_discarded',
+				]
+			);
 		}
 		if ( 'save' === $action ) {
 			$input      = $portal->posted( [ 'first_name', 'last_name', 'email', 'phone', 'birth_date', 'address', 'city', 'postal_code', 'status', 'notes' ] );
@@ -316,7 +331,7 @@ final class SociSection implements SectionInterface {
 			<?php $this->portal->field_error( 'guardian_ids' ); ?>
 		</div>
 	</div>
-	<?php if ( [] !== $duplicates ) : ?>
+		<?php if ( [] !== $duplicates ) : ?>
 		<div class="bcp-alert bcp-alert--warning" role="status">
 			<strong><?php esc_html_e( 'Controlla possibili doppioni', 'bracelli-club' ); ?></strong>
 			<p><?php esc_html_e( 'Esistono già anagrafiche con nome e cognome uguali. Verifica che non si tratti della stessa persona.', 'bracelli-club' ); ?></p>
@@ -333,7 +348,7 @@ final class SociSection implements SectionInterface {
 				<?php endforeach; ?>
 			</ul>
 		</div>
-	<?php endif; ?>
+		<?php endif; ?>
 	<p><button class="bcp-button bcp-button--primary" type="submit"><?php esc_html_e( 'Salva anagrafica', 'bracelli-club' ); ?></button> <a class="bcp-button" href="<?php echo esc_url( Portal::url( [ 'vista' => 'soci' ] ) ); ?>"><?php esc_html_e( 'Annulla', 'bracelli-club' ); ?></a></p>
 </form>
 		<?php
@@ -454,7 +469,7 @@ final class SociSection implements SectionInterface {
 	 * @return int[]
 	 */
 	private function posted_guardian_ids(): array {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- il nonce è verificato da Portal::handle_post().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- il nonce è verificato da Portal::handle_post().
 		if ( ! isset( $_POST['guardian_ids'] ) || ! is_array( $_POST['guardian_ids'] ) ) {
 			return [];
 		}
@@ -462,7 +477,9 @@ final class SociSection implements SectionInterface {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificato da Portal::handle_post().
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- ogni elemento è convertito in intero qui sotto.
 		$raw = wp_unslash( $_POST['guardian_ids'] );
-		return array_values( array_unique( array_filter( array_map( 'absint', $raw ) ) ) );
+		$result = array_values( array_unique( array_filter( array_map( 'absint', $raw ) ) ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		return $result;
 	}
 
 	/**
@@ -500,7 +517,13 @@ final class SociSection implements SectionInterface {
 			if ( [] !== $report['failures'] ) {
 				echo '<ul>';
 				foreach ( $report['failures'] as $failure ) {
-					echo '<li>' . esc_html( sprintf( __( 'Riga %1$d: %2$s', 'bracelli-club' ), (int) $failure['line'], (string) $failure['message'] ) ) . '</li>';
+					/* translators: 1: CSV row number, 2: reason the row was not imported. */
+					$message = sprintf(
+						__( 'Riga %1$d: %2$s', 'bracelli-club' ),
+						(int) $failure['line'],
+						(string) $failure['message']
+					);
+					echo '<li>' . esc_html( $message ) . '</li>';
 				}
 				echo '</ul>';
 			}
@@ -509,7 +532,12 @@ final class SociSection implements SectionInterface {
 
 		if ( is_array( $preview ) ) {
 			echo '<section class="bcp-card"><h2>' . esc_html__( 'Anteprima CSV', 'bracelli-club' ) . '</h2>';
-			echo '<p>' . esc_html( (string) $preview['filename'] ) . ' — ' . esc_html( sprintf( __( '%d righe da analizzare', 'bracelli-club' ), count( $preview['rows'] ) ) ) . '</p>';
+			/* translators: %d: number of CSV rows in the preview. */
+			$row_count = sprintf(
+				__( '%d righe da analizzare', 'bracelli-club' ),
+				count( $preview['rows'] )
+			);
+			echo '<p>' . esc_html( (string) $preview['filename'] ) . ' — ' . esc_html( $row_count ) . '</p>';
 
 			if ( [] !== $preview['fatal_errors'] ) {
 				echo '<ul class="bcp-import-errors">';
@@ -794,7 +822,10 @@ final class SociSection implements SectionInterface {
 			return '';
 		}
 		if ( preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $value, $parts ) ) {
-			return checkdate( (int) $parts[2], (int) $parts[3], (int) $parts[1] ) ? $value : '';
+			if ( checkdate( (int) $parts[2], (int) $parts[3], (int) $parts[1] ) ) {
+				return $value;
+			}
+			return '';
 		}
 		if ( preg_match( '/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $value, $parts ) ) {
 			if ( ! checkdate( (int) $parts[2], (int) $parts[1], (int) $parts[3] ) ) {
@@ -816,7 +847,12 @@ final class SociSection implements SectionInterface {
 			|| [] !== $preview['fatal_errors']
 			|| 0 !== (int) $preview['error_count']
 		) {
-			$portal->redirect( [ 'vista' => 'importa-soci', 'esito' => 'import_expired' ] );
+			$portal->redirect(
+				[
+					'vista' => 'importa-soci',
+					'esito' => 'import_expired',
+				]
+			);
 		}
 
 		$created  = 0;
