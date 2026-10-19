@@ -317,11 +317,11 @@ final class MemberRepository {
 		// phpcs:enable
 		$out = [];
 		foreach ( (array) $rows as $row ) {
-			$row['id']            = (int) $row['id'];
-			$row['member_id']     = (int) $row['member_id'];
-			$row['actor_id']      = (int) $row['actor_id'];
-			$row['fields']        = json_decode( (string) $row['changed_fields'], true );
-			$row['fields']        = is_array( $row['fields'] ) ? array_map( 'strval', $row['fields'] ) : [];
+			$row['id']        = (int) $row['id'];
+			$row['member_id'] = (int) $row['member_id'];
+			$row['actor_id']  = (int) $row['actor_id'];
+			$row['fields']    = json_decode( (string) $row['changed_fields'], true );
+			$row['fields']    = is_array( $row['fields'] ) ? array_map( 'strval', $row['fields'] ) : [];
 			unset( $row['changed_fields'] );
 			$out[] = $row;
 		}
@@ -363,9 +363,9 @@ final class MemberRepository {
 		if ( $member_id < 1 || $ancestor_id < 1 || $member_id === $ancestor_id ) {
 			return false;
 		}
-		$table   = $this->guardians_table();
-		$queue   = [ $ancestor_id ];
-		$visited = [];
+		$table         = $this->guardians_table();
+		$queue         = [ $ancestor_id ];
+		$visited       = [];
 		$visited_count = 0;
 		while ( [] !== $queue && $visited_count < 1000 ) {
 			$current = (int) array_shift( $queue );

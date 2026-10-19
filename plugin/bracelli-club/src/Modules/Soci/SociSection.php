@@ -59,21 +59,21 @@ final class SociSection implements SectionInterface {
 
 	/** {@inheritDoc} */
 	public function messages(): array {
-		return [
-			'created'   => [ 'success', __( 'Anagrafica creata.', 'bracelli-club' ) ],
-			'updated'   => [ 'success', __( 'Anagrafica aggiornata.', 'bracelli-club' ) ],
-			'archived'  => [ 'success', __( 'Socio archiviato. Il record resta nello storico.', 'bracelli-club' ) ],
-			'restored'  => [ 'success', __( 'Socio riattivato.', 'bracelli-club' ) ],
-			'unchanged' => [ 'info', __( 'Nessuna modifica da salvare.', 'bracelli-club' ) ],
-			'not_found' => [ 'error', __( 'Socio non trovato.', 'bracelli-club' ) ],
-			'duplicate'         => [ 'error', __( 'Esiste già un socio con questa email.', 'bracelli-club' ) ],
-			'import_preview'    => [ 'info', __( 'Anteprima CSV pronta: i dati non sono ancora stati salvati.', 'bracelli-club' ) ],
-			'import_invalid'    => [ 'error', __( 'Il file presenta errori: correggili e caricalo di nuovo. Nessuna riga è stata importata.', 'bracelli-club' ) ],
-			'import_file_error' => [ 'error', __( 'Il file non è stato caricato correttamente. Seleziona un CSV valido fino a 1 MB.', 'bracelli-club' ) ],
-			'import_expired'    => [ 'error', __( 'L’anteprima è scaduta o non è valida. Carica nuovamente il file.', 'bracelli-club' ) ],
-			'import_applied'    => [ 'success', __( 'Importazione CSV completata.', 'bracelli-club' ) ],
-			'import_partial'    => [ 'warning', __( 'Importazione terminata con alcune righe non salvate: controlla il rapporto.', 'bracelli-club' ) ],
-			'import_discarded'  => [ 'info', __( 'Anteprima importazione scartata.', 'bracelli-club' ) ],
+				return [
+			'created'             => [ 'success', __( 'Anagrafica creata.', 'bracelli-club' ) ],
+			'updated'             => [ 'success', __( 'Anagrafica aggiornata.', 'bracelli-club' ) ],
+			'archived'            => [ 'success', __( 'Socio archiviato. Il record resta nello storico.', 'bracelli-club' ) ],
+			'restored'            => [ 'success', __( 'Socio riattivato.', 'bracelli-club' ) ],
+			'unchanged'           => [ 'info', __( 'Nessuna modifica da salvare.', 'bracelli-club' ) ],
+			'not_found'           => [ 'error', __( 'Socio non trovato.', 'bracelli-club' ) ],
+			'duplicate'           => [ 'error', __( 'Esiste già un socio con questa email.', 'bracelli-club' ) ],
+			'import_preview'      => [ 'info', __( 'Anteprima CSV pronta: i dati non sono ancora stati salvati.', 'bracelli-club' ) ],
+			'import_invalid'      => [ 'error', __( 'Il file presenta errori: correggili e caricalo di nuovo. Nessuna riga è stata importata.', 'bracelli-club' ) ],
+			'import_file_error'   => [ 'error', __( 'Il file non è stato caricato correttamente. Seleziona un CSV valido fino a 1 MB.', 'bracelli-club' ) ],
+			'import_expired'      => [ 'error', __( 'L’anteprima è scaduta o non è valida. Carica nuovamente il file.', 'bracelli-club' ) ],
+			'import_applied'      => [ 'success', __( 'Importazione CSV completata.', 'bracelli-club' ) ],
+			'import_partial'      => [ 'warning', __( 'Importazione terminata con alcune righe non salvate: controlla il rapporto.', 'bracelli-club' ) ],
+			'import_discarded'    => [ 'info', __( 'Anteprima importazione scartata.', 'bracelli-club' ) ],
 		];
 	}
 
@@ -120,8 +120,8 @@ final class SociSection implements SectionInterface {
 			);
 		}
 		if ( 'save' === $action ) {
-			$input      = $portal->posted( [ 'first_name', 'last_name', 'email', 'phone', 'birth_date', 'address', 'city', 'postal_code', 'status', 'notes' ] );
-			$save_input = $input;
+			$input                              = $portal->posted( [ 'first_name', 'last_name', 'email', 'phone', 'birth_date', 'address', 'city', 'postal_code', 'status', 'notes' ] );
+			$save_input                         = $input;
 			$save_input['guardian_ids']         = $this->posted_guardian_ids();
 			$save_input['guardian_ids_present'] = '1';
 			$result                             = $this->service->save( $user, $id, $save_input );
@@ -266,8 +266,8 @@ final class SociSection implements SectionInterface {
 	 * @param array<string, mixed>|null $member Record esistente o null.
 	 */
 	private function form( ?array $member, int $user ): void {
-		$id     = (int) ( $member['id'] ?? 0 );
-		$values = $this->portal->old() + [
+		$id                  = (int) ( $member['id'] ?? 0 );
+		$values              = $this->portal->old() + [
 			'first_name'  => (string) ( $member['first_name'] ?? '' ),
 			'last_name'   => (string) ( $member['last_name'] ?? '' ),
 			'email'       => (string) ( $member['email'] ?? '' ),
@@ -290,8 +290,8 @@ final class SociSection implements SectionInterface {
 			(string) $values['birth_date'],
 			$id
 		);
-		$form_view = $id > 0 ? 'modifica-socio' : 'nuovo-socio';
-		$form_args = [ 'vista' => $form_view ];
+		$form_view           = $id > 0 ? 'modifica-socio' : 'nuovo-socio';
+		$form_args           = [ 'vista' => $form_view ];
 		if ( $id > 0 ) {
 			$form_args['socio'] = $id;
 		}
@@ -424,7 +424,7 @@ final class SociSection implements SectionInterface {
 		echo '<th scope="col">' . esc_html__( 'Data', 'bracelli-club' ) . '</th><th scope="col">' . esc_html__( 'Operazione', 'bracelli-club' ) . '</th><th scope="col">' . esc_html__( 'Operatore', 'bracelli-club' ) . '</th><th scope="col">' . esc_html__( 'Campi coinvolti', 'bracelli-club' ) . '</th>';
 		echo '</tr></thead><tbody>';
 		foreach ( $history as $event ) {
-			$actor = get_userdata( (int) $event['actor_id'] );
+			$actor  = get_userdata( (int) $event['actor_id'] );
 			$fields = isset( $event['fields'] ) && is_array( $event['fields'] ) ? array_map( [ $this, 'field_label' ], $event['fields'] ) : [];
 			echo '<tr><td data-label="' . esc_attr__( 'Data', 'bracelli-club' ) . '">' . esc_html( (string) $event['created_at'] ) . '</td>';
 			echo '<td data-label="' . esc_attr__( 'Operazione', 'bracelli-club' ) . '">' . esc_html( $this->history_action_label( (string) $event['action'] ) ) . '</td>';
@@ -474,9 +474,8 @@ final class SociSection implements SectionInterface {
 			return [];
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificato da Portal::handle_post().
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificato da Portal::handle_post().
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- ogni elemento è convertito in intero qui sotto.
-		$raw = wp_unslash( $_POST['guardian_ids'] );
+		$raw    = wp_unslash( $_POST['guardian_ids'] );
 		$result = array_values( array_unique( array_filter( array_map( 'absint', $raw ) ) ) );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		return $result;
@@ -614,7 +613,7 @@ final class SociSection implements SectionInterface {
 	 */
 	private function create_import_preview( int $user ): array {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- il nonce è stato verificato dal portale prima del dispatch.
-		$file = isset( $_FILES['soci_csv'] ) && is_array( $_FILES['soci_csv'] ) ? $_FILES['soci_csv'] : null;
+		$file     = isset( $_FILES['soci_csv'] ) && is_array( $_FILES['soci_csv'] ) ? $_FILES['soci_csv'] : null;
 		$filename = is_array( $file ) ? sanitize_file_name( (string) ( $file['name'] ?? '' ) ) : '';
 		$tmp      = is_array( $file ) ? (string) ( $file['tmp_name'] ?? '' ) : '';
 		$base     = [
@@ -647,16 +646,18 @@ final class SociSection implements SectionInterface {
 
 		$first_line = strtok( $content, "\r\n" );
 		$delimiter  = is_string( $first_line ) && substr_count( $first_line, ';' ) > substr_count( $first_line, ',' ) ? ';' : ',';
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen -- stream temporaneo in memoria, non un file permanente.
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- stream temporaneo in memoria, non un file permanente.
 		$stream = fopen( 'php://temp', 'r+' );
 		if ( false === $stream ) {
 			$base['fatal_errors'][] = __( 'Non è stato possibile leggere il CSV.', 'bracelli-club' );
 			return $base;
 		}
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- scrive solo nel buffer temporaneo in memoria.
 		fwrite( $stream, $content );
 		rewind( $stream );
 		$headers = fgetcsv( $stream, null, $delimiter, '"', '' );
 		if ( false === $headers || [] === $headers ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- chiude uno stream temporaneo o di risposta.
 			fclose( $stream );
 			$base['fatal_errors'][] = __( 'Il file non contiene intestazioni valide.', 'bracelli-club' );
 			return $base;
@@ -700,6 +701,7 @@ final class SociSection implements SectionInterface {
 			}
 		}
 		if ( ! isset( $columns['first_name'], $columns['last_name'] ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- chiude uno stream temporaneo o di risposta.
 			fclose( $stream );
 			$base['fatal_errors'][] = __( 'Mancano le colonne obbligatorie Nome e Cognome. Scarica il modello e riprova.', 'bracelli-club' );
 			return $base;
@@ -707,7 +709,11 @@ final class SociSection implements SectionInterface {
 
 		$seen_emails = [];
 		$line        = 1;
-		while ( false !== ( $cells = fgetcsv( $stream, null, $delimiter, '"', '' ) ) ) {
+		while ( true ) {
+			$cells = fgetcsv( $stream, null, $delimiter, '"', '' );
+			if ( false === $cells ) {
+				break;
+			}
 			++$line;
 			$filled = array_filter( $cells, static fn( $cell ): bool => '' !== trim( (string) $cell ) );
 			if ( [] === $filled ) {
@@ -719,16 +725,16 @@ final class SociSection implements SectionInterface {
 			}
 
 			$data = [
-				'first_name' => '',
-				'last_name'  => '',
-				'email'      => '',
-				'phone'      => '',
-				'birth_date' => '',
-				'address'    => '',
-				'city'       => '',
+				'first_name'  => '',
+				'last_name'   => '',
+				'email'       => '',
+				'phone'       => '',
+				'birth_date'  => '',
+				'address'     => '',
+				'city'        => '',
 				'postal_code' => '',
 				'status'      => 'active',
-				'notes'      => '',
+				'notes'       => '',
 			];
 			foreach ( $columns as $field => $index ) {
 				$data[ $field ] = trim( (string) ( $cells[ $index ] ?? '' ) );
@@ -766,7 +772,7 @@ final class SociSection implements SectionInterface {
 			}
 
 			$data['birth_date'] = $this->normalize_birth_date( $data['birth_date'] );
-			$raw_birth = isset( $columns['birth_date'] ) ? trim( (string) ( $cells[ $columns['birth_date'] ] ?? '' ) ) : '';
+			$raw_birth         = isset( $columns['birth_date'] ) ? trim( (string) ( $cells[ $columns['birth_date'] ] ?? '' ) ) : '';
 			if ( '' !== $raw_birth && '' === $data['birth_date'] ) {
 				$errors[] = __( 'Data di nascita non valida: usa AAAA-MM-GG o GG/MM/AAAA.', 'bracelli-club' );
 			}
@@ -799,13 +805,14 @@ final class SociSection implements SectionInterface {
 				$warnings[] = __( 'Esistono anagrafiche con nome e cognome simili: verifica prima di confermare.', 'bracelli-club' );
 			}
 			$base['error_count'] += count( $errors );
-			$base['rows'][] = [
+			$base['rows'][]       = [
 				'line'     => $line,
 				'data'     => $data,
 				'errors'   => $errors,
 				'warnings' => $warnings,
 			];
 		}
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- chiude uno stream temporaneo o di risposta.
 		fclose( $stream );
 		if ( [] === $base['rows'] && [] === $base['fatal_errors'] ) {
 			$base['fatal_errors'][] = __( 'Il file non contiene righe da importare.', 'bracelli-club' );
@@ -906,12 +913,13 @@ final class SociSection implements SectionInterface {
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen -- stream di risposta, nessun file creato.
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- stream di risposta, nessun file creato.
 		$stream = fopen( 'php://output', 'w' );
 		if ( false === $stream ) {
 			status_header( 500 );
 			exit;
 		}
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- scrive l'intestazione BOM nello stream CSV di risposta.
 		fwrite( $stream, "\xEF\xBB\xBF" );
 		fputcsv(
 			$stream,
@@ -954,6 +962,7 @@ final class SociSection implements SectionInterface {
 				''
 			);
 		}
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- chiude uno stream temporaneo o di risposta.
 		fclose( $stream );
 		exit;
 	}
